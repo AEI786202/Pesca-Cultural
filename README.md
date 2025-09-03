@@ -42,9 +42,8 @@ Oferecer uma experiência divertida e educativa, promovendo a valorização da a
 
 ### 🎮 Como jogar
 
-1. Abra o arquivo `index.html` em seu navegador.
-2. Mova o mouse para controlar o anzol.
-3. Capture esculturas (pontos positivos) e evite perigos.
-4. Some pontos e salve o patrimônio cultural do museu!
+1. Mova o mouse para controlar o anzol.
+2. Capture esculturas (pontos positivos) e evite perigos.
+3. Some pontos e salve o patrimônio cultural do museu!
 
 ---
