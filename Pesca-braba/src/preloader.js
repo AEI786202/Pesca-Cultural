@@ -19,6 +19,16 @@ export class Preloader extends Phaser.Scene {
             'bait',  // Chave única para referenciar este asset
             'assets/fishing-rod-hook-icon-fish-hook-fish-catch-fishing-tip-victim-bait-trap-free-vector-2287970379.jpg'
         );
+    
+        
+     // === Carregamento dos peixes ===
+    this.load.image('Anchovy', 'assets/Anchovy.png');
+    this.load.image('Clownfish', 'assets/Clownfish.png');
+    this.load.image('Crab', 'assets/Crab - Dungeness.png');
+    this.load.image('Pufferfish', 'assets/Pufferfish.png');
+    this.load.image('Surgeonfish', 'assets/Surgeonfish.png');
+
+    
     }
 
     // Método create: executado após o carregamento dos assets

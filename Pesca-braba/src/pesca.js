@@ -78,7 +78,7 @@ export class Play extends Phaser.Scene {
         // Animação de abaixar a vara
         this.anims.create({
             key: 'rod_down', 
-            frames: this.anims.generateFrameNumbers('fisher', { start: 30, end: 34 }),
+            frames: this.anims.generateFrameNumbers('fisher', { start: 31, end: 34 }),
             frameRate: 15,
             repeat: 0                    // Não repetir (executa uma vez)
         });
@@ -86,7 +86,7 @@ export class Play extends Phaser.Scene {
         // Animação de levantar a vara
         this.anims.create({
             key: 'rod_up', 
-            frames: this.anims.generateFrameNumbers('fisher', { start: 33, end: 37 }),
+            frames: this.anims.generateFrameNumbers('fisher', { start: 33, end: 36 }),
             frameRate: 15,
             repeat: 0
         });
@@ -115,6 +115,59 @@ export class Play extends Phaser.Scene {
                 this.currentAnim = 'idle';
             }
         });
+
+        // === Grupo de peixes ===
+        // Cria um grupo para armazenar todos os peixes ativos
+        this.fishGroup = this.add.group();
+
+        // Lista de tipos de peixes disponíveis
+        this.fishTypes = ['Anchovy', 'Clownfish', 'Crab', 'Pufferfish', 'Surgeonfish'];
+
+        // === Timer para spawn de peixes ===
+        // Cria um evento que chama spawnFish em intervalos regulares
+        this.time.addEvent({
+            delay: 900,        // A cada 0.9 segundos
+            callback: this.spawnFish,
+            callbackScope: this,
+            loop: true
+        });
+    }
+
+    // === Função para spawnar um peixe ===
+    spawnFish() {
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        // Escolhe um peixe aleatório da lista
+        const fishKey = Phaser.Utils.Array.GetRandom(this.fishTypes);
+
+        // Define posição inicial fora da tela (esquerda ou direita)
+        const fromLeft = Phaser.Math.Between(0, 1) === 0;
+        const x = fromLeft ? - 20 : width + 20;
+        const y = Phaser.Math.Between(this.player.y + 80, height - 20);
+
+        // Cria o sprite do peixe
+        const fish = this.add.image(x, y, fishKey).setScale(1.0);
+
+        // === Criação da hitbox do peixe ===
+        // Cria um retângulo vermelho semitransparente para a hitbox do peixe
+        const fishHitbox = this.add.rectangle(fish.x, fish.y, fish.width, fish.height, 0xff0000, 0.3); 
+        fishHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
+        fishHitbox.setStrokeStyle(1, 0xffffff);  // Adiciona contorno branco
+        fishHitbox.setVisible(true);  // Torna visível para debugging
+
+        // Se vier da direita, inverte o sprite (espelhado)
+        if (!fromLeft) {
+            fish.setFlipX(true);
+        }
+
+        // Define velocidade aleatória
+        const speed = Phaser.Math.Between(50, 100);
+
+        // Adiciona o peixe ao grupo com suas propriedades
+        this.fishGroup.add(fish);
+        fish.setData('speed', speed * (fromLeft ? 1 : -1));
+        fish.setData('hitbox', fishHitbox);  // Armazena a hitbox associada a este peixe
     }
 
     // Método update: executado a cada frame (aproximadamente 60 vezes por segundo)
@@ -222,5 +275,32 @@ export class Play extends Phaser.Scene {
         this.line.moveTo(this.smoothRod.x, this.smoothRod.y);  // Início na ponta da vara
         this.line.lineTo(this.baitHitbox.x, this.baitHitbox.y);  // Fim na isca
         this.line.strokePath();  // Aplica o traço
+
+        // === Atualização dos peixes ===
+        // Move cada peixe e remove se sair da tela
+        this.fishGroup.getChildren().forEach(fish => {
+            // Obtém a velocidade armazenada nos dados do peixe
+            const speed = fish.getData('speed');
+            // Obtém a hitbox associada ao peixe
+            const fishHitbox = fish.getData('hitbox');
+            
+            // Move o peixe baseado na velocidade e tempo delta
+            fish.x += speed * (this.game.loop.delta / 1000);
+            
+            // Move a hitbox junto com o peixe
+            if (fishHitbox) {
+                fishHitbox.x = fish.x;
+                fishHitbox.y = fish.y;
+            }
+            
+            // Remove peixes que saíram da tela
+            if ((speed > 0 && fish.x > width + 100) || (speed < 0 && fish.x < -100)) {
+                // Destroi tanto o peixe quanto sua hitbox
+                fish.destroy();
+                if (fishHitbox) {
+                    fishHitbox.destroy();
+                }
+            }
+        });
     }
 }
