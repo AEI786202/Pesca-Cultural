@@ -72,7 +72,7 @@ export class Play extends Phaser.Scene {
             key: 'idle',                 // Nome da animação
             frames: [{ key: 'fisher', frame: 28 }],  // Quadro único
             frameRate: 1,                // Velocidade (quadros por segundo)
-            repeat: -1                   // Repetir infinitamente
+            repeat: 0                   // Repetir infinitamente
         });
 
         // Animação de abaixar a vara
@@ -170,12 +170,47 @@ export class Play extends Phaser.Scene {
         fish.setData('hitbox', fishHitbox);  // Armazena a hitbox associada a este peixe
     }
 
-    // Método update: executado a cada frame (aproximadamente 60 vezes por segundo)
-    update() {
-        const width = this.scale.width; 
-        const height = this.scale.height; 
+    // === Atualização da linha de pesca ===
+    updateFishingLine() {
+        // Desenha a linha da vara até a isca
+        this.line.beginPath(); 
+        this.line.moveTo(this.smoothRod.x, this.smoothRod.y);  // Início na ponta da vara
+        this.line.lineTo(this.baitHitbox.x, this.baitHitbox.y);  // Fim na isca
+        this.line.strokePath();  // Aplica o traço
+    }
 
-        // === Atualização do fundo animado ===
+    // === Atualização dos peixes ===
+    updateFish() {
+        const width = this.scale.width;
+        const height = this.scale.height;
+        // === Atualização dos peixes ===
+        // Move cada peixe e remove se sair da tela
+        this.fishGroup.getChildren().forEach(fish => {
+            // Obtém a velocidade armazenada nos dados do peixe
+            const speed = fish.getData('speed');
+            // Obtém a hitbox associada ao peixe
+            const fishHitbox = fish.getData('hitbox');
+            
+            // Move o peixe baseado na velocidade e tempo delta
+            fish.x += speed * (this.game.loop.delta / 1000);
+            
+            // Move a hitbox junto com o peixe
+            if (fishHitbox) {
+                fishHitbox.x = fish.x;
+                fishHitbox.y = fish.y;
+            }
+            
+            // Remove peixes que saíram da tela
+            if ((speed > 0 && fish.x > width + 100) || (speed < 0 && fish.x < -100)) {
+                // Destroi tanto o peixe quanto sua hitbox
+                fish.destroy();
+                fishHitbox.destroy();                
+            }
+        });
+    }
+
+    // === Atualização do fundo animado ===
+    updateBackground(width, height) {
         this.waveOffset += 0.01;  // Incrementa o offset para animação
         const canvas = this.textures.get('bgCanvas').getSourceImage();
         const ctx = canvas.getContext('2d');
@@ -191,7 +226,10 @@ export class Play extends Phaser.Scene {
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, width, height);
         this.textures.get('bgCanvas').refresh();  // Atualiza a textura
+    }
 
+    // === Atualização da posição da isca ===
+    updateBait() {
         // === Movimento da hitbox da isca ===
         if (!this.targetPos) return;
         
@@ -207,7 +245,10 @@ export class Play extends Phaser.Scene {
         // A imagem da isca segue a hitbox
         this.bait.x = this.baitHitbox.x;
         this.bait.y = this.baitHitbox.y;
+    }
 
+    // === Atualização das animações do pescador ===
+    updateRodAnimation() {
         // === Detecção de movimento vertical para animações ===
         if (this.lastPointerY !== null && !this.isCatching) { 
             const deltaY = this.baitHitbox.y - this.lastPointerY;  // Diferença de posição Y
@@ -228,7 +269,10 @@ export class Play extends Phaser.Scene {
             }
         }
         this.lastPointerY = this.baitHitbox.y;  // Armazena a posição atual para o próximo frame
+    }
 
+    // === Verificação de captura ===
+    checkCatch() {
         // === Verificação de captura (quando a isca está perto do pescador) ===
         const dist = Phaser.Math.Distance.Between(
             this.baitHitbox.x, this.baitHitbox.y, 
@@ -239,7 +283,10 @@ export class Play extends Phaser.Scene {
             this.player.play('catch', true);  // Reproduz animação de pescar
             this.currentAnim = 'catch'; 
         }
+    }
 
+    // === Atualização da vara e da linha ===
+    updateRodAndLine(width) {
         // === Atualização da linha de pesca ===
         this.line.clear();  // Limpa o desenho anterior
         this.line.lineStyle(1.3, 0xffffff, 2);  // Define estilo da linha (espessura, cor, alpha)
@@ -269,38 +316,31 @@ export class Play extends Phaser.Scene {
         // Suaviza o movimento da ponta da vara
         this.smoothRod.x = Phaser.Math.Linear(this.smoothRod.x, playerRodX, 0.90); 
         this.smoothRod.y = Phaser.Math.Linear(this.smoothRod.y, playerRodY, 0.90); 
+        this.updateFishingLine();  // Atualiza a linha de pesca
+    }
 
-        // Desenha a linha da vara até a isca
-        this.line.beginPath(); 
-        this.line.moveTo(this.smoothRod.x, this.smoothRod.y);  // Início na ponta da vara
-        this.line.lineTo(this.baitHitbox.x, this.baitHitbox.y);  // Fim na isca
-        this.line.strokePath();  // Aplica o traço
+    // Método update: executado a cada frame (aproximadamente 60 vezes por segundo)
+    update() {
+        const width = this.scale.width; 
+        const height = this.scale.height; 
+
+        // === Atualização do fundo animado ===
+        this.updateBackground(width, height);
+
+        // === Movimento da hitbox da isca ===
+        this.updateBait();
+
+        // === Detecção de movimento vertical para animações ===
+        this.updateRodAnimation();
+
+        // === Verificação de captura (quando a isca está perto do pescador) ===
+        this.checkCatch();
+
+        // === Atualização da linha de pesca ===
+        // === Atualização da vara e da linha ===
+        this.updateRodAndLine(width);
 
         // === Atualização dos peixes ===
-        // Move cada peixe e remove se sair da tela
-        this.fishGroup.getChildren().forEach(fish => {
-            // Obtém a velocidade armazenada nos dados do peixe
-            const speed = fish.getData('speed');
-            // Obtém a hitbox associada ao peixe
-            const fishHitbox = fish.getData('hitbox');
-            
-            // Move o peixe baseado na velocidade e tempo delta
-            fish.x += speed * (this.game.loop.delta / 1000);
-            
-            // Move a hitbox junto com o peixe
-            if (fishHitbox) {
-                fishHitbox.x = fish.x;
-                fishHitbox.y = fish.y;
-            }
-            
-            // Remove peixes que saíram da tela
-            if ((speed > 0 && fish.x > width + 100) || (speed < 0 && fish.x < -100)) {
-                // Destroi tanto o peixe quanto sua hitbox
-                fish.destroy();
-                if (fishHitbox) {
-                    fishHitbox.destroy();
-                }
-            }
-        });
+        this.updateFish();
     }
 }
