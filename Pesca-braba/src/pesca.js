@@ -120,14 +120,30 @@ export class Play extends Phaser.Scene {
         // Cria um grupo para armazenar todos os peixes ativos
         this.fishGroup = this.add.group();
 
+        // === Grupo de baleias ===
+        // Cria um grupo para armazenar todas as baleias ativas
+        this.whaleGroup = this.add.group();
+
         // Lista de tipos de peixes disponíveis
         this.fishTypes = ['Anchovy', 'Clownfish', 'Crab', 'Pufferfish', 'Surgeonfish'];
+
+        // Lista de tipos de baleias disponíveis
+        this.whaleTypes = ['Whale'];
 
         // === Timer para spawn de peixes ===
         // Cria um evento que chama spawnFish em intervalos regulares
         this.time.addEvent({
             delay: 900,        // A cada 0.9 segundos
             callback: this.spawnFish,
+            callbackScope: this,
+            loop: true
+        });
+
+        // === Timer para spawn de baleias ===
+        // Cria um evento que chama spawnWhale em intervalos mais longos (mais raro)
+        this.time.addEvent({
+            delay: 5000,       // A cada 5 segundos (mais raro que peixes)
+            callback: this.spawnWhale,
             callbackScope: this,
             loop: true
         });
@@ -161,7 +177,7 @@ export class Play extends Phaser.Scene {
             fish.setFlipX(true);
         }
 
-        // Define velocidade aleatória
+        // Define velocidade aleatória para peixes (mais rápida)
         const speed = Phaser.Math.Between(50, 100);
 
         // Adiciona o peixe ao grupo com suas propriedades
@@ -169,6 +185,46 @@ export class Play extends Phaser.Scene {
         fish.setData('speed', speed * (fromLeft ? 1 : -1));
         fish.setData('hitbox', fishHitbox);  // Armazena a hitbox associada a este peixe
     }
+
+    // === Função para spawnar uma baleia ===
+    spawnWhale() {
+    if( (Phaser.Math.Between(1, 100)) < 100 ){
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        // Escolhe uma baleia aleatória da lista
+        const whaleKey = Phaser.Utils.Array.GetRandom(this.whaleTypes);
+
+        // Define posição inicial fora da tela (esquerda ou direita)
+        const fromLeft = Phaser.Math.Between(0, 1) === 0;
+        const x = fromLeft ? - 50 : width + 50;
+        // Baleias nadam mais no fundo (mais perto do fundo da tela)
+        const y = Phaser.Math.Between(height - 100, height - 30);
+
+        // Cria o sprite da baleia com escala maior
+        const whale = this.add.image(x, y, whaleKey).setScale(1.5);
+
+        // === Criação da hitbox da baleia ===
+        // Cria um retângulo azul semitransparente para a hitbox da baleia
+        const whaleHitbox = this.add.rectangle(whale.x, whale.y, whale.width, whale.height, 0x0000ff, 0.3); 
+        whaleHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
+        whaleHitbox.setStrokeStyle(1, 0xffffff);  // Adiciona contorno branco
+        whaleHitbox.setVisible(true);  // Torna visível para debugging
+
+        // Se vier da direita, inverte o sprite (espelhado)
+        if (!fromLeft) {
+            whale.setFlipX(true);
+        }
+
+        // Define velocidade para baleias (mais lenta que peixes)
+        const speed = Phaser.Math.Between(20, 40);  // Velocidade menor que peixes
+
+        // Adiciona a baleia ao grupo com suas propriedades
+        this.whaleGroup.add(whale);
+        whale.setData('speed', speed * (fromLeft ? 1 : -1));
+        whale.setData('hitbox', whaleHitbox);  // Armazena a hitbox associada a esta baleia
+    }else return;
+}
 
     // === Atualização da linha de pesca ===
     updateFishingLine() {
@@ -182,8 +238,6 @@ export class Play extends Phaser.Scene {
     // === Atualização dos peixes ===
     updateFish() {
         const width = this.scale.width;
-        const height = this.scale.height;
-        // === Atualização dos peixes ===
         // Move cada peixe e remove se sair da tela
         this.fishGroup.getChildren().forEach(fish => {
             // Obtém a velocidade armazenada nos dados do peixe
@@ -204,7 +258,35 @@ export class Play extends Phaser.Scene {
             if ((speed > 0 && fish.x > width + 100) || (speed < 0 && fish.x < -100)) {
                 // Destroi tanto o peixe quanto sua hitbox
                 fish.destroy();
-                fishHitbox.destroy();                
+                if (fishHitbox) fishHitbox.destroy();                
+            }
+        });
+    }
+
+    // === Atualização das baleias ===
+    updateWhales() {
+        const width = this.scale.width;
+        // Move cada baleia e remove se sair da tela
+        this.whaleGroup.getChildren().forEach(whale => {
+            // Obtém a velocidade armazenada nos dados da baleia
+            const speed = whale.getData('speed');
+            // Obtém a hitbox associada à baleia
+            const whaleHitbox = whale.getData('hitbox');
+            
+            // Move a baleia baseado na velocidade e tempo delta
+            whale.x += speed * (this.game.loop.delta / 1000);
+            
+            // Move a hitbox junto com a baleia
+            if (whaleHitbox) {
+                whaleHitbox.x = whale.x;
+                whaleHitbox.y = whale.y;
+            }
+            
+            // Remove baleias que saíram da tela
+            if ((speed > 0 && whale.x > width + 150) || (speed < 0 && whale.x < -150)) {
+                // Destroi tanto a baleia quanto sua hitbox
+                whale.destroy();
+                if (whaleHitbox) whaleHitbox.destroy();                
             }
         });
     }
@@ -336,11 +418,13 @@ export class Play extends Phaser.Scene {
         // === Verificação de captura (quando a isca está perto do pescador) ===
         this.checkCatch();
 
-        // === Atualização da linha de pesca ===
         // === Atualização da vara e da linha ===
         this.updateRodAndLine(width);
 
         // === Atualização dos peixes ===
         this.updateFish();
+
+        // === Atualização das baleias ===
+        this.updateWhales();
     }
 }

@@ -27,8 +27,9 @@ export class Preloader extends Phaser.Scene {
     this.load.image('Crab', 'assets/Crab - Dungeness.png');
     this.load.image('Pufferfish', 'assets/Pufferfish.png');
     this.load.image('Surgeonfish', 'assets/Surgeonfish.png');
-
-    
+    // == Carregamento da baleia ===
+    // === PLACEHOLDER ===
+    this.load.image('Whale','assets/Clownfish.png')
     }
 
     // Método create: executado após o carregamento dos assets
