@@ -202,7 +202,7 @@ export class Play extends Phaser.Scene {
         const y = Phaser.Math.Between(height - 100, height - 30);
 
         // Cria o sprite da baleia com escala maior
-        const whale = this.add.image(x, y, whaleKey).setScale(1.5);
+        const whale = this.add.image(x, y, whaleKey).setScale(1.0);
 
         // === Criação da hitbox da baleia ===
         // Cria um retângulo azul semitransparente para a hitbox da baleia
