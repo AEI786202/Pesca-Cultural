@@ -125,7 +125,7 @@ export class Play extends Phaser.Scene {
         this.whaleGroup = this.add.group();
 
         // Lista de tipos de peixes disponíveis
-        this.fishTypes = ['Anchovy', 'Clownfish', 'Crab', 'Pufferfish', 'Surgeonfish'];
+        this.fishTypes = ['Anchova', 'Corvina', 'Linguado', 'Pampos', 'Tainha'];
 
         // Lista de tipos de baleias disponíveis
         this.whaleTypes = ['Whale'];

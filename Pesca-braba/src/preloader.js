@@ -22,11 +22,11 @@ export class Preloader extends Phaser.Scene {
     
         
      // === Carregamento dos peixes ===
-    this.load.image('Anchovy', 'assets/Anchovy.png');
-    this.load.image('Clownfish', 'assets/Clownfish.png');
-    this.load.image('Crab', 'assets/Crab - Dungeness.png');
-    this.load.image('Pufferfish', 'assets/Pufferfish.png');
-    this.load.image('Surgeonfish', 'assets/Surgeonfish.png');
+    this.load.image('Anchova', 'assets/peixes 16/anchova.png');
+    this.load.image('Corvina', 'assets/peixes 16/corvina.png');
+    this.load.image('Linguado', 'assets/peixes 16/linguado.png');
+    this.load.image('Pampos', 'assets/peixes 16/pampos.png');
+    this.load.image('Tainha', 'assets/peixes 16/tainha.png');
     // == Carregamento da baleia ===
     // === PLACEHOLDER ===
     this.load.image('Whale','assets/whale.png')
