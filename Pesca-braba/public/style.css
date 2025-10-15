@@ -53,6 +53,8 @@ body {
     border: 4px solid #415a77;
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    width: 550px;
+    height: 480px;
     /* O tamanho é controlado pelo Phaser, não precisamos definir aqui */
 }
 
