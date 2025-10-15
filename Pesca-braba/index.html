@@ -5,11 +5,41 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./public/style.css">
-    <title>Pesca Braba!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Pesca Cultural</title>
 </head>
 <body>
     <div id="app">
-        <div id="game-container"></div>
+
+        <header class="page-header">
+            <h1>Pesca Cultural</h1>
+            <p class="subtitle">Resgate os tesouros perdidos do museu de São José!</p>
+        </header>
+
+        <main class="game-area">
+            <aside class="sidebar">
+                <h2>Como Jogar</h2>
+                <p>Use o mouse para controlar o anzol e capturar os itens na água.</p>
+                <p>Cada tesouro recuperado ajuda a reconstruir a história do nosso museu.</p>
+                <img src="./public/assets/tela como jogar/como jogar.png" alt="Instruções do jogo" style="width: 100%; border-radius: 8px;">
+            </aside>
+
+            <div id="game-container"></div>
+
+            <aside class="sidebar">
+                <h2>Sobre o Projeto</h2>
+                <p>Este jogo é uma atividade de extensão do curso de Análise e Desenvolvimento de Sistemas.</p>
+                <p><strong>Grupo:</strong></p>
+                <ul>
+                    <li>Daniel Bentes Perquim (HTML/CSS)</li>
+                    <li>Kaleu Borges Augusto (JavaScript)</li>
+                    <li>Andrey Rosa Nunis (Arte)</li>
+                </ul>
+            </aside>
+        </main>
+
     </div>
     <script type="module" src="src/main.js"></script>
 </body>
