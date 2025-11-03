@@ -1,4 +1,3 @@
-import Phaser from 'phaser';
 
 // Define a cena de pré-carregamento que herda da classe Scene do Phaser
 export class Preloader extends Phaser.Scene {
