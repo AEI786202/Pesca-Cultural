@@ -1,3 +1,4 @@
+const Phaser = window.Phaser;
 // Define a cena principal do jogo que herda da classe Scene do Phaser
 export class Play extends Phaser.Scene {
     constructor() {

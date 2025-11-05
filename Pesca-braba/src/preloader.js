@@ -1,3 +1,4 @@
+const Phaser = window.Phaser;
 // Define a cena de pré-carregamento que herda da classe Scene do Phaser
 export class Preloader extends Phaser.Scene {
     constructor() {
