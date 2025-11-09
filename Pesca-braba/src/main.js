@@ -1,4 +1,4 @@
-const Phaser = window.Phaser;
+import Phaser from 'phaser';
 import { Preloader } from './preloader.js';
 import { Play } from './pesca.js';
 
