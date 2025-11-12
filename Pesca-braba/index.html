@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./public/style.css">
+    <link rel="stylesheet" href="./public/style.css"> 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -18,30 +18,60 @@
             <p class="subtitle">Resgate os tesouros perdidos do museu de São José!</p>
         </header>
 
-        <main class="game-area">
-            <aside class="sidebar">
+        <div id="game-container-wrapper">
+            <div id="game-container"></div>
+            
+            <div id="play-overlay" class="game-overlay active"> <button id="play-button" aria-label="Jogar">
+                    <svg viewBox="0 0 100 100">
+                        <polygon points="30,20 80,50 30,80"></polygon>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="game-over-screen" class="game-overlay">
+                <div class="overlay-content">
+                    <img src="./public/assets/tela final/Tela final.png" alt="Fim de Jogo" class="content-image">
+                    <button id="restart-button">Jogar Novamente</button>
+                </div>
+            </div>
+            
+            <button id="fullscreen-button" aria-label="Tela Cheia">
+                <svg viewBox="0 0 24 24">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <section class="info-section">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="como-jogar">Como Jogar</button>
+                <button class="tab-button" data-tab="sobre">Sobre o Projeto</button>
+            </div>
+
+            <div class="tab-content" id="como-jogar">
                 <h2>Como Jogar</h2>
                 <p>Use o mouse para controlar o anzol e capturar os itens na água.</p>
-                <p>Cada tesouro recuperado ajuda a reconstruir a história do nosso museu.</p>
-                <img src="./public/assets/tela como jogar/como jogar.png" alt="Instruções do jogo" style="width: 100%; border-radius: 8px;">
-            </aside>
+                <img src="./public/assets/tela como jogar/como jogar.png" alt="Instruções do jogo" class="content-image">
+            </div>
 
-            <div id="game-container"></div>
-
-            <aside class="sidebar">
+            <div class="tab-content hidden" id="sobre">
                 <h2>Sobre o Projeto</h2>
                 <p>Este jogo é uma atividade de extensão do curso de Análise e Desenvolvimento de Sistemas.</p>
                 <p><strong>Grupo:</strong></p>
                 <ul>
-                    <li>Daniel Bentes Perquim (HTML/CSS)</li>
-                    <li>Kaleu Borges Augusto (JavaScript)</li>
-                    <li>Andrey Rosa Nunis (Arte)</li>
+                    <li>Daniel Bentes Perquim (Página do Jogo)</li>
+                    <li>Kaleu Borges Augusto (Desenvolvimento Phaser)</li>
+                    <li>Andrey  (Arte)</li>
                 </ul>
-            </aside>
-        </main>
+            </div>
+        </section>
 
     </div>
-    <script src="./src/libs/phaser.js"></script>
+
     <script type="module" src="./src/main.js"></script>
+
+    <script type="module" src="./src/page.js">
+
+    </script>
 </body>
 </html>

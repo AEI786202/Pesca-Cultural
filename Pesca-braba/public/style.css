@@ -1,84 +1,234 @@
-/* Reset básico e estilos gerais para o corpo da página */
+/* Reset básico e estilos gerais */
 body {
     margin: 0;
     padding: 0;
-    background-color: #0d1b2a; /* Um azul bem escuro para o fundo */
+    /* PONTO 2 e 3: Fundo azul escuro de volta */
+    background-color: #0d1b2a;
     color: #e0e1dd;
-    font-family: 'Arial', sans-serif; /* Uma fonte padrão como fallback */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    font-family: 'Arial', sans-serif;
     min-height: 100vh;
 }
 
 /* Container principal da aplicação */
 #app {
     display: flex;
-    flex-direction: column; /* Organiza os filhos (header e main) em coluna */
-    align-items: center; /* Centraliza os filhos horizontalmente */
-    gap: 20px; /* Espaço entre o header e a área do jogo */
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
     width: 100%;
-    max-width: 1200px; /* Largura máxima para a página */
-    padding: 20px;
+    /* PONTO 3: Compactação para celular */
+    padding: 20px 10px; /* Menos padding lateral em telas pequenas */
+    box-sizing: border-box;
 }
 
-/* Estilo do Cabeçalho */
+/* ===== ESTILO DO CABEÇALHO (ATRATIVO) ===== */
 .page-header {
     text-align: center;
-    font-family: 'Press Start 2P', cursive; /* Usando a fonte pixelada */
+    font-family: 'Press Start 2P', cursive;
+    width: 100%;
 }
 
 .page-header h1 {
     margin: 0;
-    color: #ffc300; /* Um dourado para o título */
-    font-size: 2.5rem;
+    color: #ffc300;
+    font-size: clamp(2rem, 8vw, 3.5rem); /* Aumenta o tamanho mínimo */
+    /* PONTO 3: Título pixelado destacado */
+    text-shadow: 4px 4px 0px #000000;
+    -webkit-text-stroke: 1px #000;
 }
 
 .page-header .subtitle {
-    margin: 5px 0 0;
-    font-size: 0.9rem;
+    margin: 10px 0 0;
+    font-size: clamp(0.8rem, 3vw, 1rem);
     color: #a9d6e5;
+    text-shadow: 2px 2px 0px #000000;
 }
 
-/* Área principal que contém o jogo e as sidebars */
-.game-area {
-    display: flex; /* Transforma em um container flex */
-    justify-content: center; /* Centraliza os itens */
-    align-items: flex-start; /* Alinha os itens no topo */
-    gap: 20px; /* Espaço entre as sidebars e o jogo */
-}
-
-/* Estilo do container do jogo */
-#game-container {
+/* ===== ESTILO DO JOGO (MAIOR E RESPONSIVO) ===== */
+#game-container-wrapper {
+    position: relative; /* Base para os botões */
+    width: 95vw; /* Ocupa 95% da largura da tela */
+    max-width: 800px; /* Limite em telas grandes */
+    aspect-ratio: 550 / 480; /* Mantém a proporção do jogo */
+    margin: 0 auto;
     border: 4px solid #415a77;
     border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-    width: 550px;
-    height: 480px;
-    /* O tamanho é controlado pelo Phaser, não precisamos definir aqui */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
 }
 
-/* Estilo das barras laterais */
-.sidebar {
-    width: 250px; /* Largura fixa para as barras laterais */
-    background-color: #1b263b; /* Cor de fundo um pouco mais clara */
+#game-container {
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== ESTILOS DAS SEÇÕES DE INFORMAÇÕES (ABAS) ===== */
+.info-section {
+    width: 95vw;
+    max-width: 800px;
+    background-color: #1b263b;
     border: 2px solid #415a77;
     border-radius: 8px;
     padding: 15px;
-    box-sizing: border-box; /* Garante que o padding não aumente a largura total */
+    box-sizing: border-box;
 }
 
-.sidebar h2 {
+.tab-buttons {
+    display: flex;
+    /* PONTO 3: Linha divisória */
+    border-bottom: 2px solid #415a77;
+}
+
+.tab-button {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem); /* Fonte menor para caber */
+    padding: 15px;
+    background-color: transparent;
+    border: none;
+    color: #a9d6e5;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 6px 6px 0 0;
+    flex-grow: 1; /* Faz os botões ocuparem espaço igual */
+    text-align: center;
+}
+
+.tab-button:hover {
+    background-color: #415a77;
+}
+
+.tab-button.active {
+    background-color: #0d1b2a;
+    color: #ffc300;
+    border: 2px solid #415a77;
+    border-bottom: 2px solid #0d1b2a;
+    transform: translateY(2px);
+}
+
+.tab-content {
+    padding: 20px 10px;
+    line-height: 1.6;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+.tab-content h2 {
     font-family: 'Press Start 2P', cursive;
     color: #ffc300;
     margin-top: 0;
-    font-size: 1rem;
-    text-align: center;
-    border-bottom: 2px solid #415a77;
-    padding-bottom: 10px;
+    font-size: 1.2rem;
 }
 
-.sidebar p, .sidebar li {
-    font-size: 0.9rem;
-    line-height: 1.5;
+/* PONTO 3: Imagens menores e com borda arredondada */
+.content-image {
+    width: 100%;
+    max-width: 400px; /* Limita o tamanho */
+    display: block;
+    margin: 15px auto 0;
+    border-radius: 8px; /* Borda arredondada */
+}
+
+/* ===== ESTILOS DOS OVERLAYS (PLAY E FIM DE JOGO) ===== */
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px); /* Desfoca o fundo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px; /* Combina com o wrapper */
+    
+    /* Escondido por padrão */
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Mostra o overlay que tiver a classe 'active' */
+.game-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.overlay-content {
+    text-align: center;
+    padding: 20px;
+}
+
+/* ===== PONTO 4: ESTILO BOTÃO DE PLAY ===== */
+#play-button {
+    width: clamp(80px, 20vw, 120px); /* Tamanho responsivo */
+    height: clamp(80px, 20vw, 120px);
+    background-color: #ffc300;
+    border: 5px solid #ffffff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(255, 195, 0, 0.5);
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#play-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 50px rgba(255, 195, 0, 0.8);
+}
+
+#play-button svg {
+    width: 50%;
+    height: 50%;
+    fill: #ffffff;
+    transform: translateX(10%); /* Ajusta o triângulo no centro */
+}
+
+/* ===== PONTO 5: ESTILO BOTÃO TELA CHEIA ===== */
+#fullscreen-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+#fullscreen-button:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#fullscreen-button svg {
+    width: 100%;
+    height: 100%;
+    fill: #ffffff;
+}
+
+/* Botão de reiniciar (na tela de fim de jogo) */
+#restart-button {
+    margin-top: 20px;
+    padding: 12px 25px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1rem;
+    color: #ffffff;
+    background-color: #fca311;
+    border: 2px solid #e85d04;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#restart-button:hover {
+    background-color: #ffc300;
 }

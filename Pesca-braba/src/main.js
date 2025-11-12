@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { Preloader } from './preloader.js';
 import { Play } from './pesca.js';
 
@@ -21,4 +22,9 @@ const config = {
 };
 
 // Cria uma nova instância do jogo Phaser com a configuração fornecida
-new Phaser.Game(config);
+
+// new Phaser.Game(config);
+
+export function iniciarJogo() {
+     new Phaser.Game(config); 
+    }
