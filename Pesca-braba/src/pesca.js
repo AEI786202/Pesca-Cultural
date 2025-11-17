@@ -127,7 +127,7 @@ export class Play extends Phaser.Scene {
         this.fishTypes = ['Anchova', 'Corvina', 'Linguado', 'Pampos', 'Tainha'];
 
         // Lista de tipos de baleias disponíveis
-        this.whaleTypes = ['Whale'];
+        this.whaleTypes = ['Baleia'];
 
         // === Timer para spawn de peixes ===
         // Cria um evento que chama spawnFish em intervalos regulares
