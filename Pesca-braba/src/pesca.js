@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+
 // Define a cena principal do jogo que herda da classe Scene do Phaser
 export class Play extends Phaser.Scene {
     constructor() {
@@ -10,6 +11,16 @@ export class Play extends Phaser.Scene {
         // Obtém as dimensões da tela
         const width = this.scale.width;  
         const height = this.scale.height; 
+
+        // === Sistema de Pontuação ===
+        this.score = 0;
+        this.scoreText = this.add.text(20, 20, 'Pontuação: 0', {
+            fontSize: '24px',
+            fill: '#ffffff',
+            fontFamily: 'Arial, sans-serif',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setScrollFactor(0).setDepth(100);
 
         // === Criação do fundo com gradiente animado ===
         // Cria uma textura dinâmica usando canvas
@@ -28,9 +39,9 @@ export class Play extends Phaser.Scene {
         
         // === Criação da hitbox (área de colisão) da isca ===
         // Retângulo vermelho semitransparente para detectar colisões
-        this.baitHitbox = this.add.rectangle(width / 2, height / 2, 15, 15, 0xff0000, 1); 
+        this.baitHitbox = this.add.rectangle(width / 2, height / 2, 15, 15, 0xff0000, 0.5); 
         this.baitHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
-        this.baitHitbox.setStrokeStyle(1, 0xffffff);  // Adiciona contorno branco
+        this.baitHitbox.setStrokeStyle(2, 0xffffff);  // Adiciona contorno branco
         this.baitHitbox.setVisible(true);  // Torna visível para debugging
         
         // === Criação da imagem da isca ===
@@ -55,6 +66,8 @@ export class Play extends Phaser.Scene {
         this.smoothDeltaY = 0;           // Suavização do movimento vertical
         this.smoothRod = { x: this.player.x, y: this.player.y };  // Posição suavizada da vara
         this.isCatching = false;         // Flag para verificar se está pescando
+        this.caughtTreasure = null;      // Referência ao tesouro atualmente capturado
+        this.catchTriggered = false;     // Flag para controlar trigger único da animação
 
         // === Configuração de entrada do usuário ===
         // Evento disparado quando o mouse/toque se move
@@ -71,7 +84,7 @@ export class Play extends Phaser.Scene {
             key: 'idle',                 // Nome da animação
             frames: [{ key: 'fisher', frame: 28 }],  // Quadro único
             frameRate: 1,                // Velocidade (quadros por segundo)
-            repeat: 0                   // Repetir infinitamente
+            repeat: 0                    // Não repetir
         });
 
         // Animação de abaixar a vara
@@ -93,7 +106,7 @@ export class Play extends Phaser.Scene {
         // Animação de pescar
         this.anims.create({
             key: 'catch', 
-            frames: this.anims.generateFrameNumbers('fisher', { start: 29, end: 38 }),
+            frames: this.anims.generateFrameNumbers('fisher', { start: 29, end: 36 }),
             frameRate: 15,
             repeat: 0
         });
@@ -109,25 +122,24 @@ export class Play extends Phaser.Scene {
                 this.isCatching = false;           // Finaliza o estado de pesca
                 this.player.play('idle', true);    // Volta para animação de idle
                 this.currentAnim = 'idle'; 
+                // Não reseta catchTriggered aqui - só reseta quando a isca se afastar
             } else if (['rod_down', 'rod_up'].includes(anim.key) && !this.isCatching) {
                 this.player.play('idle', true);    // Volta para idle após mover a vara
                 this.currentAnim = 'idle';
             }
         });
 
-        // === Grupo de peixes ===
-        // Cria um grupo para armazenar todos os peixes ativos
-        this.fishGroup = this.add.group();
-
-        // === Grupo de baleias ===
-        // Cria um grupo para armazenar todas as baleias ativas
-        this.whaleGroup = this.add.group();
+        // === Grupos para gerenciamento de entidades ===
+        this.fishGroup = this.add.group();     // Grupo para armazenar todos os peixes ativos
+        this.whaleGroup = this.add.group();    // Grupo para armazenar todas as baleias ativas
+        this.treasureGroup = this.add.group(); // Grupo para armazenar todos os tesouros ativos
 
         // Lista de tipos de peixes disponíveis
         this.fishTypes = ['Anchova', 'Corvina', 'Linguado', 'Pampos', 'Tainha'];
-
         // Lista de tipos de baleias disponíveis
         this.whaleTypes = ['Baleia'];
+        // Lista de tipos de tesouros disponíveis
+        this.treasureTypes = ['Caveira', 'Mascara', 'Relogio', 'Vaso', 'Vaso2', 'zarabatana'];
 
         // === Timer para spawn de peixes ===
         // Cria um evento que chama spawnFish em intervalos regulares
@@ -146,6 +158,15 @@ export class Play extends Phaser.Scene {
             callbackScope: this,
             loop: true
         });
+
+        // === Timer para spawn de tesouros ===
+        // Cria um evento que chama spawnTreasure em intervalos regulares
+        this.time.addEvent({
+            delay: 8000,       // A cada 8 segundos
+            callback: this.spawnTreasure,
+            callbackScope: this,
+            loop: true
+        });
     }
 
     // === Função para spawnar um peixe ===
@@ -158,7 +179,7 @@ export class Play extends Phaser.Scene {
 
         // Define posição inicial fora da tela (esquerda ou direita)
         const fromLeft = Phaser.Math.Between(0, 1) === 0;
-        const x = fromLeft ? - 20 : width + 20;
+        const x = fromLeft ? -20 : width + 20;
         const y = Phaser.Math.Between(this.player.y + 80, height - 20);
 
         // Cria o sprite do peixe
@@ -166,9 +187,9 @@ export class Play extends Phaser.Scene {
 
         // === Criação da hitbox do peixe ===
         // Cria um retângulo vermelho semitransparente para a hitbox do peixe
-        const fishHitbox = this.add.rectangle(fish.x, fish.y, fish.width, fish.height, 0xff0000, 0.3); 
+        const fishHitbox = this.add.rectangle(fish.x, fish.y, fish.width, fish.height, 0xff0000, 0.4); 
         fishHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
-        fishHitbox.setStrokeStyle(1, 0xffffff);  // Adiciona contorno branco
+        fishHitbox.setStrokeStyle(2, 0xff0000);  // Adiciona contorno vermelho
         fishHitbox.setVisible(true);  // Torna visível para debugging
 
         // Se vier da direita, inverte o sprite (espelhado)
@@ -187,51 +208,104 @@ export class Play extends Phaser.Scene {
 
     // === Função para spawnar uma baleia ===
     spawnWhale() {
-    if( (Phaser.Math.Between(1, 100)) < 100 ){
+        // 20% de chance de spawnar uma baleia
+        if (Phaser.Math.Between(1, 100) < 20) {
+            const width = this.scale.width;
+            const height = this.scale.height;
+
+            // Escolhe uma baleia aleatória da lista
+            const whaleKey = Phaser.Utils.Array.GetRandom(this.whaleTypes);
+
+            // Define posição inicial fora da tela (esquerda ou direita)
+            const fromLeft = Phaser.Math.Between(0, 1) === 0;
+            const x = fromLeft ? -50 : width + 50;
+            // Baleias nadam mais no fundo (mais perto do fundo da tela)
+            const y = Phaser.Math.Between(height - 100, height - 30);
+
+            // Cria o sprite da baleia
+            const whale = this.add.image(x, y, whaleKey).setScale(1.0);
+
+            // === Criação da hitbox da baleia ===
+            // Cria um retângulo azul semitransparente para a hitbox da baleia
+            const whaleHitbox = this.add.rectangle(whale.x, whale.y, whale.width, whale.height, 0x0000ff, 0.4); 
+            whaleHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
+            whaleHitbox.setStrokeStyle(2, 0x0000ff);  // Adiciona contorno azul
+            whaleHitbox.setVisible(true);  // Torna visível para debugging
+
+            // Se vier da direita, inverte o sprite (espelhado)
+            if (!fromLeft) {
+                whale.setFlipX(true);
+            }
+
+            // Define velocidade para baleias (mais lenta que peixes)
+            const speed = Phaser.Math.Between(20, 40);  // Velocidade menor que peixes
+
+            // Adiciona a baleia ao grupo com suas propriedades
+            this.whaleGroup.add(whale);
+            whale.setData('speed', speed * (fromLeft ? 1 : -1));
+            whale.setData('hitbox', whaleHitbox);  // Armazena a hitbox associada a esta baleia
+        }
+    }
+
+    // === Função para spawnar tesouros ===
+    spawnTreasure() {
         const width = this.scale.width;
         const height = this.scale.height;
 
-        // Escolhe uma baleia aleatória da lista
-        const whaleKey = Phaser.Utils.Array.GetRandom(this.whaleTypes);
+        // Escolhe um tesouro aleatório da lista
+        const treasureKey = Phaser.Utils.Array.GetRandom(this.treasureTypes);
 
         // Define posição inicial fora da tela (esquerda ou direita)
         const fromLeft = Phaser.Math.Between(0, 1) === 0;
-        const x = fromLeft ? - 50 : width + 50;
-        // Baleias nadam mais no fundo (mais perto do fundo da tela)
-        const y = Phaser.Math.Between(height - 100, height - 30);
+        const x = fromLeft ? -30 : width + 30;
+        // Tesouros spawnam na parte inferior da tela
+        const y = Phaser.Math.Between(this.player.y + 100, height - 50);
 
-        // Cria o sprite da baleia com escala maior
-        const whale = this.add.image(x, y, whaleKey).setScale(1.0);
+        // Cria o sprite do tesouro
+        const treasure = this.add.image(x, y, treasureKey).setScale(1.0);
 
-        // === Criação da hitbox da baleia ===
-        // Cria um retângulo azul semitransparente para a hitbox da baleia
-        const whaleHitbox = this.add.rectangle(whale.x, whale.y, whale.width, whale.height, 0x0000ff, 0.3); 
-        whaleHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
-        whaleHitbox.setStrokeStyle(1, 0xffffff);  // Adiciona contorno branco
-        whaleHitbox.setVisible(true);  // Torna visível para debugging
+        // === Criação da hitbox do tesouro ===
+        // Cria um retângulo verde semitransparente para a hitbox do tesouro (80% do tamanho do sprite)
+        const treasureHitbox = this.add.rectangle(
+            treasure.x, 
+            treasure.y, 
+            treasure.width * 0.8, 
+            treasure.height * 0.8, 
+            0x00ff00, 
+            0.4
+        ); 
+        treasureHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
+        treasureHitbox.setStrokeStyle(2, 0x00ff00);  // Adiciona contorno verde
+        treasureHitbox.setVisible(true);  // Torna visível para debugging
 
         // Se vier da direita, inverte o sprite (espelhado)
         if (!fromLeft) {
-            whale.setFlipX(true);
+            treasure.setFlipX(true);
         }
 
-        // Define velocidade para baleias (mais lenta que peixes)
-        const speed = Phaser.Math.Between(20, 40);  // Velocidade menor que peixes
+        // Define velocidade para tesouros
+        const speed = Phaser.Math.Between(30, 60);
 
-        // Adiciona a baleia ao grupo com suas propriedades
-        this.whaleGroup.add(whale);
-        whale.setData('speed', speed * (fromLeft ? 1 : -1));
-        whale.setData('hitbox', whaleHitbox);  // Armazena a hitbox associada a esta baleia
-    }else return;
-}
+        // Adiciona o tesouro ao grupo com suas propriedades
+        this.treasureGroup.add(treasure);
+        treasure.setData('speed', speed * (fromLeft ? 1 : -1));
+        treasure.setData('hitbox', treasureHitbox);  // Armazena a hitbox associada a este tesouro
+        treasure.setData('isCaught', false);  // Estado inicial: não capturado
+        treasure.setData('value', Phaser.Math.Between(10, 50));  // Valor aleatório entre 10-50 pontos
+    }
 
     // === Atualização da linha de pesca ===
     updateFishingLine() {
-        // Desenha a linha da vara até a isca
-        this.line.beginPath(); 
-        this.line.moveTo(this.smoothRod.x, this.smoothRod.y);  // Início na ponta da vara
-        this.line.lineTo(this.baitHitbox.x, this.baitHitbox.y);  // Fim na isca
-        this.line.strokePath();  // Aplica o traço
+        // Limpa o desenho anterior da linha
+        this.line.clear();
+        // Define o estilo da linha (espessura, cor, alpha)
+        this.line.lineStyle(1.3, 0xffffff, 2);
+        // Move para a posição da ponta da vara
+        this.line.moveTo(this.smoothRod.x, this.smoothRod.y);
+        // Desenha linha até a isca
+        this.line.lineTo(this.baitHitbox.x, this.baitHitbox.y);
+        // Aplica o traço
+        this.line.strokePath();
     }
 
     // === Atualização dos peixes ===
@@ -288,6 +362,115 @@ export class Play extends Phaser.Scene {
                 if (whaleHitbox) whaleHitbox.destroy();                
             }
         });
+    }
+
+    // === Atualização dos tesouros ===
+    updateTreasures() {
+        const width = this.scale.width;
+        
+        // Processa cada tesouro no grupo
+        this.treasureGroup.getChildren().forEach(treasure => {
+            const speed = treasure.getData('speed');
+            const treasureHitbox = treasure.getData('hitbox');
+            const isCaught = treasure.getData('isCaught');
+            
+            if (!isCaught) {
+                // Tesouro não capturado: move normalmente
+                treasure.x += speed * (this.game.loop.delta / 1000);
+                
+                // Move a hitbox junto com o tesouro
+                if (treasureHitbox) {
+                    treasureHitbox.x = treasure.x;
+                    treasureHitbox.y = treasure.y;
+                }
+                
+                // Verifica colisão com a isca usando overlap de retângulos
+                const baitBounds = this.baitHitbox.getBounds();
+                const treasureBounds = treasureHitbox.getBounds();
+                
+                // Se houve colisão entre a isca e o tesouro
+                if (Phaser.Geom.Rectangle.Overlaps(baitBounds, treasureBounds)) {
+                    treasure.setData('isCaught', true);  // Marca como capturado
+                    this.caughtTreasure = treasure;      // Armazena referência
+                    
+                    // Efeito visual de captura (amarelo)
+                    treasure.setTint(0xffff00);
+                    treasureHitbox.setFillStyle(0xffff00, 0.5);
+                }
+            } else {
+                // Tesouro capturado: segue a isca
+                treasure.x = this.baitHitbox.x;
+                treasure.y = this.baitHitbox.y + 20;  // Offset para ficar abaixo da isca
+                
+                // Move a hitbox junto com o tesouro
+                if (treasureHitbox) {
+                    treasureHitbox.x = treasure.x;
+                    treasureHitbox.y = treasure.y;
+                }
+                
+                // Verifica se chegou perto do pescador para coleta
+                const distToPlayer = Phaser.Math.Distance.Between(
+                    treasure.x, treasure.y, 
+                    this.player.x, this.player.y
+                );
+                
+                // Se está perto o suficiente do pescador, coleta o tesouro
+                if (distToPlayer < 80) {
+                    this.collectTreasure(treasure);
+                }
+            }
+            
+            // Remove tesouros que saíram da tela (apenas os não capturados)
+            if (!isCaught && ((speed > 0 && treasure.x > width + 100) || (speed < 0 && treasure.x < -100))) {
+                treasure.destroy();
+                if (treasureHitbox) treasureHitbox.destroy();                
+            }
+        });
+    }
+
+    // === Função para coletar tesouro ===
+    collectTreasure(treasure) {
+        const treasureValue = treasure.getData('value');
+        const treasureHitbox = treasure.getData('hitbox');
+        
+        // Adiciona pontuação
+        this.score += treasureValue;
+        this.scoreText.setText(`Pontuação: ${this.score}`);
+        
+        // Efeito visual de coleta - texto flutuante
+        const collectText = this.add.text(
+            this.player.x, 
+            this.player.y - 50, 
+            `+${treasureValue}`, 
+            {
+                fontSize: '20px',
+                fill: '#ffff00',
+                fontFamily: 'Arial, sans-serif',
+                stroke: '#000000',
+                strokeThickness: 3
+            }
+        ).setDepth(100);
+        
+        // Animação do texto flutuante (sobe e desaparece)
+        this.tweens.add({
+            targets: collectText,
+            y: collectText.y - 50,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => {
+                collectText.destroy();
+            }
+        });
+        
+        // Remove o tesouro e sua hitbox
+        treasure.destroy();
+        if (treasureHitbox) treasureHitbox.destroy();
+        
+        // Limpa a referência do tesouro capturado
+        if (this.caughtTreasure === treasure) {
+            this.caughtTreasure = null;
+        }
     }
 
     // === Atualização do fundo animado ===
@@ -359,10 +542,18 @@ export class Play extends Phaser.Scene {
             this.baitHitbox.x, this.baitHitbox.y, 
             this.player.x, this.player.y
         );
-        if (dist < 60 && !this.isCatching) { 
+        
+        // Só ativa a animação se estiver perto, não tiver sido triggerada ainda, e não estiver em catch
+        if (dist < 60 && !this.catchTriggered && !this.isCatching && this.currentAnim !== 'catch') { 
             this.isCatching = true;           // Ativa estado de pesca
+            this.catchTriggered = true;       // Marca que já foi ativada (trigger único)
             this.player.play('catch', true);  // Reproduz animação de pescar
             this.currentAnim = 'catch'; 
+        }
+        
+        // Reseta o trigger quando a isca se afastar (permite nova ativação)
+        if (dist >= 60 && this.catchTriggered && !this.isCatching) {
+            this.catchTriggered = false;
         }
     }
 
@@ -425,5 +616,8 @@ export class Play extends Phaser.Scene {
 
         // === Atualização das baleias ===
         this.updateWhales();
+
+        // === Atualização dos tesouros ===
+        this.updateTreasures();
     }
 }
