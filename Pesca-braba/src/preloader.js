@@ -28,12 +28,12 @@ export class Preloader extends Phaser.Scene {
     this.load.image('Tainha', '/assets/peixes 16/tainha.png');
     
      // === Carregamento dos tesouros === 
-    this.load.image('Caveira', '/assets/tesouros 16/caveira.png');
-    this.load.image('Mascara', '/assets/tesouros 16/mascara.png');
-    this.load.image('Relogio', '/assets/tesouros 16/relogio.png');
-    this.load.image('Vaso', '/assets/tesouros 16/vaso.png');
-    this.load.image('Vaso2', '/assets/tesouros 16/vaso2.png');
-    this.load.image('zarabatana', '/assets/tesouros 16/zarabatana.png');
+    this.load.image('Caveira', '/assets/tesouros 32/caveira.png');
+    this.load.image('Mascara', '/assets/tesouros 32/mascara.png');
+    this.load.image('Relogio', '/assets/tesouros 32/relogio.png');
+    this.load.image('Vaso', '/assets/tesouros 32/vaso.png');
+    this.load.image('Vaso2', '/assets/tesouros 32/vaso2.png');
+    this.load.image('zarabatana', '/assets/tesouros 32/zarabatana.png');
 
     // == Carregamento da baleia ===
     // === PLACEHOLDER ===
