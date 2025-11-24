@@ -22,6 +22,26 @@ export class Play extends Phaser.Scene {
             strokeThickness: 4
         }).setScrollFactor(0).setDepth(100);
 
+        // === Sistema de Timer ===
+        this.gameTime = 180; // 3 minutos em segundos (3 * 60 = 180)
+        this.timerText = this.add.text(width - 200, 20, 'Tempo: 03:00', {
+            fontSize: '24px',
+            fill: '#ffffff',
+            fontFamily: 'Arial, sans-serif',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setScrollFactor(0).setDepth(100);
+
+        // === Sistema de Vidas ===
+        this.lives = 3;  // Jogador começa com 3 vidas
+        this.livesText = this.add.text(20, 60, 'Vidas: 3', {
+            fontSize: '24px',
+            fill: '#ff0000',
+            fontFamily: 'Arial, sans-serif',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setScrollFactor(0).setDepth(100);
+
         // === Criação do fundo com gradiente animado ===
         // Cria uma textura dinâmica usando canvas
         this.bgTexture = this.textures.createCanvas('bgCanvas', width, height); 
@@ -68,6 +88,9 @@ export class Play extends Phaser.Scene {
         this.isCatching = false;         // Flag para verificar se está pescando
         this.caughtTreasure = null;      // Referência ao tesouro atualmente capturado
         this.catchTriggered = false;     // Flag para controlar trigger único da animação
+        this.isInvulnerable = false;     // Flag para período de invulnerabilidade após tomar dano
+        this.invulnerabilityTimer = 0;   // Timer para controle de invulnerabilidade
+        this.gameEnded = false;          // Flag para indicar se o jogo acabou
 
         // === Configuração de entrada do usuário ===
         // Evento disparado quando o mouse/toque se move
@@ -162,11 +185,248 @@ export class Play extends Phaser.Scene {
         // === Timer para spawn de tesouros ===
         // Cria um evento que chama spawnTreasure em intervalos regulares
         this.time.addEvent({
-            delay: 8000,       // A cada 8 segundos
+            delay: 6000,       // A cada 8 segundos
             callback: this.spawnTreasure,
             callbackScope: this,
             loop: true
         });
+
+        // === Timer principal do jogo ===
+        // Cria um evento que atualiza o timer a cada segundo
+        this.timerEvent = this.time.addEvent({
+            delay: 1000,       // A cada 1 segundo
+            callback: this.updateTimer,
+            callbackScope: this,
+            loop: true
+        });
+    }
+
+    // === Função para atualizar o timer ===
+    updateTimer() {
+        // Se o jogo já acabou, não atualiza o timer
+        if (this.gameEnded) return;
+
+        // Reduz o tempo em 1 segundo
+        this.gameTime--;
+
+        // Atualiza o texto do timer
+        const minutes = Math.floor(this.gameTime / 60);
+        const seconds = this.gameTime % 60;
+        const timeString = `Tempo: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        this.timerText.setText(timeString);
+
+        // Efeito visual quando o tempo está acabando (últimos 30 segundos)
+        if (this.gameTime <= 30) {
+            // Pisca o texto em vermelho
+            this.timerText.setFill(this.gameTime % 2 === 0 ? '#ff0000' : '#ffffff');
+            
+            // Efeito sonoro ou visual adicional pode ser adicionado aqui
+            if (this.gameTime === 30) {
+                // Alerta visual para os últimos 30 segundos
+                const warningText = this.add.text(
+                    this.scale.width / 2,
+                    this.scale.height / 2 - 100,
+                    'ÚLTIMOS 30 SEGUNDOS!',
+                    {
+                        fontSize: '36px',
+                        fill: '#ff0000',
+                        fontFamily: 'Arial, sans-serif',
+                        stroke: '#000000',
+                        strokeThickness: 6,
+                        align: 'center'
+                    }
+                ).setOrigin(0.5).setDepth(150);
+                
+                // Remove o texto de aviso após 2 segundos
+                this.time.delayedCall(2000, () => {
+                    warningText.destroy();
+                });
+            }
+        }
+
+        // Verifica se o tempo acabou
+        if (this.gameTime <= 0) {
+            this.timeUp();
+        }
+    }
+
+    // === Função quando o tempo acaba ===
+    timeUp() {
+        // Para o timer
+        this.timerEvent.remove();
+
+        // Chama a função de finalização do jogo
+        this.endGame('Tempo Esgotado!');
+    }
+
+    // === Função para verificar colisões com inimigos ===
+    checkEnemyCollisions() {
+        // Se o jogo acabou, não verifica colisões
+        if (this.gameEnded) return;
+        
+        // Só verifica colisões se não estiver invulnerável
+        if (this.isInvulnerable) return;
+
+        const baitBounds = this.baitHitbox.getBounds();
+
+        // Verifica colisão com peixes
+        this.fishGroup.getChildren().forEach(fish => {
+            const fishHitbox = fish.getData('hitbox');
+            if (fishHitbox) {
+                const fishBounds = fishHitbox.getBounds();
+                if (Phaser.Geom.Rectangle.Overlaps(baitBounds, fishBounds)) {
+                    this.takeDamage(1, 'peixe');
+                    return; // Sai da função após uma colisão
+                }
+            }
+        });
+
+        // Verifica colisão com baleias
+        this.whaleGroup.getChildren().forEach(whale => {
+            const whaleHitbox = whale.getData('hitbox');
+            if (whaleHitbox) {
+                const whaleBounds = whaleHitbox.getBounds();
+                if (Phaser.Geom.Rectangle.Overlaps(baitBounds, whaleBounds)) {
+                    this.takeDamage(1, 'baleia');
+                    return; // Sai da função após uma colisão
+                }
+            }
+        });
+    }
+
+    // === Função para tomar dano ===
+    takeDamage(damage, enemyType) {
+        // Reduz vidas
+        this.lives -= damage;
+        this.livesText.setText(`Vidas: ${this.lives}`);
+
+        // Efeito visual de dano
+        const damageText = this.add.text(
+            this.player.x, 
+            this.player.y - 80, 
+            `-${damage} vida!`, 
+            {
+                fontSize: '20px',
+                fill: '#ff0000',
+                fontFamily: 'Arial, sans-serif',
+                stroke: '#000000',
+                strokeThickness: 3
+            }
+        ).setDepth(100);
+
+        // Animação do texto de dano
+        this.tweens.add({
+            targets: damageText,
+            y: damageText.y - 30,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => {
+                damageText.destroy();
+            }
+        });
+
+        // Efeito visual no pescador (piscar)
+        this.isInvulnerable = true;
+        this.invulnerabilityTimer = 0;
+        
+        // Efeito de piscar
+        const blinkInterval = setInterval(() => {
+            this.player.setAlpha(this.player.alpha === 1 ? 0.3 : 1);
+        }, 100);
+
+        // Remove o efeito após 2 segundos
+        setTimeout(() => {
+            clearInterval(blinkInterval);
+            this.player.setAlpha(1);
+            this.isInvulnerable = false;
+        }, 2000);
+
+        // Verifica se o jogo acabou
+        if (this.lives <= 0) {
+            this.endGame('Game Over');
+        }
+    }
+
+    // === Função de finalização do jogo (para tempo ou vidas) ===
+    endGame(reason) {
+        // Previne qualquer ação adicional
+        this.isCatching = true;
+        this.isInvulnerable = true;
+        this.gameEnded = true;
+
+        // === Para todos os timers de spawn ===
+        this.time.removeAllEvents();
+
+        // === Remove todas as entidades ===
+        this.removeAllEntities();
+
+        // === Remove a capacidade de mover a isca ===
+        this.input.off('pointermove');
+        this.input.on('pointermove', () => {
+            // Não faz nada - impede o movimento da isca
+        });
+
+        // Determina o título baseado no motivo do fim do jogo
+        let title = 'GAME OVER';
+        if (reason === 'Tempo Esgotado!') {
+            title = 'TEMPO ESGOTADO!';
+        }
+
+        // Efeito visual de final do jogo
+        const finalText = this.add.text(
+            this.scale.width / 2, 
+            this.scale.height / 2, 
+            `${title}\n\nPontuação Final: ${this.score}\n\nClique para jogar novamente`, 
+            {
+                fontSize: '32px',
+                fill: '#ff0000',
+                fontFamily: 'Arial, sans-serif',
+                stroke: '#000000',
+                strokeThickness: 4,
+                align: 'center'
+            }
+        ).setOrigin(0.5).setDepth(200);
+
+        // Adiciona evento de clique para reiniciar
+        this.input.once('pointerdown', () => {
+            this.scene.restart();
+        });
+
+        // Também permite reiniciar com a tecla espaço
+        this.input.keyboard?.once('keydown-SPACE', () => {
+            this.scene.restart();
+        });
+    }
+
+    // === Função para remover todas as entidades ===
+    removeAllEntities() {
+        // Remove todos os peixes
+        this.fishGroup.getChildren().forEach(fish => {
+            const fishHitbox = fish.getData('hitbox');
+            if (fish && fish.active) fish.destroy();
+            if (fishHitbox && fishHitbox.active) fishHitbox.destroy();
+        });
+        this.fishGroup.clear(true, true);
+
+        // Remove todas as baleias
+        this.whaleGroup.getChildren().forEach(whale => {
+            const whaleHitbox = whale.getData('hitbox');
+            if (whale && whale.active) whale.destroy();
+            if (whaleHitbox && whaleHitbox.active) whaleHitbox.destroy();
+        });
+        this.whaleGroup.clear(true, true);
+
+        // Remove todos os tesouros
+        this.treasureGroup.getChildren().forEach(treasure => {
+            const treasureHitbox = treasure.getData('hitbox');
+            if (treasure && treasure.active) treasure.destroy();
+            if (treasureHitbox && treasureHitbox.active) treasureHitbox.destroy();
+        });
+        this.treasureGroup.clear(true, true);
+
+        // Limpa a referência do tesouro capturado
+        this.caughtTreasure = null;
     }
 
     // === Função para spawnar um peixe ===
@@ -291,7 +551,7 @@ export class Play extends Phaser.Scene {
         treasure.setData('speed', speed * (fromLeft ? 1 : -1));
         treasure.setData('hitbox', treasureHitbox);  // Armazena a hitbox associada a este tesouro
         treasure.setData('isCaught', false);  // Estado inicial: não capturado
-        treasure.setData('value', Phaser.Math.Between(10, 50));  // Valor aleatório entre 10-50 pontos
+        treasure.setData('value', 50);  // Valor aleatório entre 10-50 pontos
     }
 
     // === Atualização da linha de pesca ===
@@ -559,10 +819,6 @@ export class Play extends Phaser.Scene {
 
     // === Atualização da vara e da linha ===
     updateRodAndLine(width) {
-        // === Atualização da linha de pesca ===
-        this.line.clear();  // Limpa o desenho anterior
-        this.line.lineStyle(1.3, 0xffffff, 2);  // Define estilo da linha (espessura, cor, alpha)
-        
         // Fatores de escala para adaptar a diferentes tamanhos de tela
         const scaleFactor = this.player.scaleX; 
         const widthFactor = width / 800; 
@@ -588,7 +844,9 @@ export class Play extends Phaser.Scene {
         // Suaviza o movimento da ponta da vara
         this.smoothRod.x = Phaser.Math.Linear(this.smoothRod.x, playerRodX, 0.90); 
         this.smoothRod.y = Phaser.Math.Linear(this.smoothRod.y, playerRodY, 0.90); 
-        this.updateFishingLine();  // Atualiza a linha de pesca
+        
+        // Atualiza a linha de pesca
+        this.updateFishingLine();
     }
 
     // Método update: executado a cada frame (aproximadamente 60 vezes por segundo)
@@ -619,5 +877,13 @@ export class Play extends Phaser.Scene {
 
         // === Atualização dos tesouros ===
         this.updateTreasures();
+
+        // === Verificação de colisões com inimigos ===
+        this.checkEnemyCollisions();
+
+        // === Atualização do timer de invulnerabilidade ===
+        if (this.isInvulnerable) {
+            this.invulnerabilityTimer += this.game.loop.delta;
+        }
     }
 }
