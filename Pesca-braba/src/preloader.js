@@ -38,7 +38,10 @@ export class Preloader extends Phaser.Scene {
     // == Carregamento da baleia ===
     // === PLACEHOLDER ===
     this.load.image('Baleia','/assets/peixes 64/Baleia.png')
-    }
+    
+    // == Carregamento do píer ===
+    this.load.image('pier','/assets/cenario/pier.png')
+}
 
     // Método create: executado após o carregamento dos assets
     create() {

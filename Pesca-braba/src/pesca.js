@@ -54,8 +54,18 @@ export class Play extends Phaser.Scene {
         this.baitScale = this.playerScale * 0.1;  // Escala proporcional para a isca
         
         // === Criação do pescador ===
-        // Adiciona o sprite do pescador no meio superior da tela
-        this.player = this.add.sprite(width / 2, 100, 'fisher').setScale(this.playerScale); 
+        // Posiciona o pescador em um ponto fixo da tela (não depende do pier)
+        const fixedPlayerY = height * 0.35;  // Posição fixa: 35% da altura da tela
+        this.player = this.add.sprite(width / 2, fixedPlayerY, 'fisher').setScale(this.playerScale);
+        
+        // === ADIÇÃO DO PIER ===
+        // Carrega a imagem do pier e a posiciona abaixo dos pés do pescador
+        this.pier = this.add.image(width / 2, height - 50, 'pier').setOrigin(0.5, 1.4);
+        // Ajusta a escala do pier baseado no tamanho da tela
+        const pierScale = Math.min(width / 800, height / 600) * 1.2;
+        this.pier.setScale(pierScale);
+        // Coloca o pier em uma camada abaixo do pescador mas acima do fundo
+        this.pier.setDepth(-1); 
         
         // === Criação da hitbox (área de colisão) da isca ===
         // Retângulo vermelho semitransparente para detectar colisões
