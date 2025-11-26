@@ -55,14 +55,14 @@ export class Play extends Phaser.Scene {
         
         // === Criação do pescador ===
         // Posiciona o pescador em um ponto fixo da tela (não depende do pier)
-        const fixedPlayerY = height * 0.35;  // Posição fixa: 35% da altura da tela
+        const fixedPlayerY = height * 0.4;  // Posição fixa: 39% da altura da tela
         this.player = this.add.sprite(width / 2, fixedPlayerY, 'fisher').setScale(this.playerScale);
         
         // === ADIÇÃO DO PIER ===
         // Carrega a imagem do pier e a posiciona abaixo dos pés do pescador
-        this.pier = this.add.image(width / 2, height - 50, 'pier').setOrigin(0.5, 1.4);
+        this.pier = this.add.image(width / 2, height - 50, 'pier').setOrigin(0.5, 1.3);
         // Ajusta a escala do pier baseado no tamanho da tela
-        const pierScale = Math.min(width / 800, height / 600) * 1.2;
+        const pierScale = Math.min(width / 800, height / 600) * 0.6;
         this.pier.setScale(pierScale);
         // Coloca o pier em uma camada abaixo do pescador mas acima do fundo
         this.pier.setDepth(-1); 
@@ -86,7 +86,7 @@ export class Play extends Phaser.Scene {
         this.bounds = {
             left: 10,                    // Limite esquerdo
             right: width - 10,           // Limite direito
-            top: this.player.y + 40,     // Limite superior (abaixo do pescador)
+            top: this.player.y + 60,     // Limite superior (abaixo do pescador)
             bottom: height - 10          // Limite inferior
         };
 
@@ -101,6 +101,10 @@ export class Play extends Phaser.Scene {
         this.isInvulnerable = false;     // Flag para período de invulnerabilidade após tomar dano
         this.invulnerabilityTimer = 0;   // Timer para controle de invulnerabilidade
         this.gameEnded = false;          // Flag para indicar se o jogo acabou
+
+        // === AJUSTE: Variáveis de distância otimizadas para a nova posição ===
+        this.catchDistance = 80;         // Distância para ativar animação de pesca (aumentada)
+        this.collectDistance = 100;      // Distância para coletar tesouros (aumentada)
 
         // === Configuração de entrada do usuário ===
         // Evento disparado quando o mouse/toque se move
@@ -450,7 +454,8 @@ export class Play extends Phaser.Scene {
         // Define posição inicial fora da tela (esquerda ou direita)
         const fromLeft = Phaser.Math.Between(0, 1) === 0;
         const x = fromLeft ? -20 : width + 20;
-        const y = Phaser.Math.Between(this.player.y + 80, height - 20);
+        // AJUSTE: Área de spawn otimizada para nova posição do pescador
+        const y = Phaser.Math.Between(this.player.y + 100, height - 50);
 
         // Cria o sprite do peixe
         const fish = this.add.image(x, y, fishKey).setScale(1.0);
@@ -489,8 +494,8 @@ export class Play extends Phaser.Scene {
             // Define posição inicial fora da tela (esquerda ou direita)
             const fromLeft = Phaser.Math.Between(0, 1) === 0;
             const x = fromLeft ? -50 : width + 50;
-            // Baleias nadam mais no fundo (mais perto do fundo da tela)
-            const y = Phaser.Math.Between(height - 100, height - 30);
+            // AJUSTE: Baleias spawnam em área mais adequada
+            const y = Phaser.Math.Between(this.player.y + 150, height - 80);
 
             // Cria o sprite da baleia
             const whale = this.add.image(x, y, whaleKey).setScale(1.0);
@@ -528,8 +533,8 @@ export class Play extends Phaser.Scene {
         // Define posição inicial fora da tela (esquerda ou direita)
         const fromLeft = Phaser.Math.Between(0, 1) === 0;
         const x = fromLeft ? -30 : width + 30;
-        // Tesouros spawnam na parte inferior da tela
-        const y = Phaser.Math.Between(this.player.y + 100, height - 50);
+        // AJUSTE: Tesouros spawnam em área mais adequada
+        const y = Phaser.Math.Between(this.player.y + 120, height - 70);
 
         // Cria o sprite do tesouro
         const treasure = this.add.image(x, y, treasureKey).setScale(1.0);
@@ -678,14 +683,14 @@ export class Play extends Phaser.Scene {
                     treasureHitbox.y = treasure.y;
                 }
                 
-                // Verifica se chegou perto do pescador para coleta
+                // AJUSTE: Verifica se chegou perto do pescador para coleta
                 const distToPlayer = Phaser.Math.Distance.Between(
                     treasure.x, treasure.y, 
                     this.player.x, this.player.y
                 );
                 
-                // Se está perto o suficiente do pescador, coleta o tesouro
-                if (distToPlayer < 80) {
+                // AJUSTE: Distância de coleta aumentada para nova posição
+                if (distToPlayer < this.collectDistance) {
                     this.collectTreasure(treasure);
                 }
             }
@@ -805,7 +810,7 @@ export class Play extends Phaser.Scene {
         this.lastPointerY = this.baitHitbox.y;  // Armazena a posição atual para o próximo frame
     }
 
-    // === Verificação de captura ===
+    // === VERIFICAÇÃO DE CAPTURA AJUSTADA ===
     checkCatch() {
         // === Verificação de captura (quando a isca está perto do pescador) ===
         const dist = Phaser.Math.Distance.Between(
@@ -813,16 +818,17 @@ export class Play extends Phaser.Scene {
             this.player.x, this.player.y
         );
         
+        // AJUSTE: Usa a distância variável otimizada para nova posição
         // Só ativa a animação se estiver perto, não tiver sido triggerada ainda, e não estiver em catch
-        if (dist < 60 && !this.catchTriggered && !this.isCatching && this.currentAnim !== 'catch') { 
+        if (dist < this.catchDistance && !this.catchTriggered && !this.isCatching && this.currentAnim !== 'catch') { 
             this.isCatching = true;           // Ativa estado de pesca
             this.catchTriggered = true;       // Marca que já foi ativada (trigger único)
             this.player.play('catch', true);  // Reproduz animação de pescar
             this.currentAnim = 'catch'; 
         }
         
-        // Reseta o trigger quando a isca se afastar (permite nova ativação)
-        if (dist >= 60 && this.catchTriggered && !this.isCatching) {
+        // AJUSTE: Reseta o trigger quando a isca se afastar (permite nova ativação)
+        if (dist >= this.catchDistance && this.catchTriggered && !this.isCatching) {
             this.catchTriggered = false;
         }
     }
