@@ -40,13 +40,17 @@ export class Preloader extends Phaser.Scene {
     this.load.image('Baleia','/assets/peixes 64/Baleia.png')
     
     // == Carregamento do píer ===
-    this.load.image('pier','/assets/cenario/pier.png')
+    this.load.image('pier','/assets/cenario/Trapiche-museu.png')
+    
+    // == Imagem do menu 'Como Jogar' ===
+    // Usa o arquivo presente em public/assets/tela como jogar/como jogar.png
+    this.load.image('howToPlay', './public/assets/tela como jogar/como jogar.png');
 }
 
     // Método create: executado após o carregamento dos assets
     create() {
-        // Inicia a cena principal do jogo
-        this.scene.start('Play');
-        console.log("Iniciando o jogo...");
+        // Inicia a cena do menu (mostra instruções e botão de iniciar)
+        this.scene.start('Menu');
+        console.log("Assets carregados — entrando no Menu...");
     }
 }
