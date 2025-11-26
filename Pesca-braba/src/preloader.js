@@ -17,7 +17,7 @@ export class Preloader extends Phaser.Scene {
         // Carrega a imagem da isca
         this.load.image(
             'bait',  // Chave única para referenciar este asset
-            '/public/assets/fishing-rod-hook-icon-fish-hook-fish-catch-fishing-tip-victim-bait-trap-free-vector-2287970379.jpg'
+            '/assets/fishing-rod-hook-icon-fish-hook-fish-catch-fishing-tip-victim-bait-trap-free-vector-2287970379.jpg'
         );
 
         // === Carregamento dos peixes ===
@@ -44,7 +44,7 @@ export class Preloader extends Phaser.Scene {
     
         // == Imagem do menu 'Como Jogar' ===
         // Usa o arquivo presente em public/assets/tela como jogar/como jogar.png
-        this.load.image('howToPlay', '/public/assets/tela como jogar/como jogar.png');
+        this.load.image('howToPlay', '/assets/tela como jogar/como jogar.png');
 
         // Carregamento do ícone de vida ===
         this.load.image('heart', '/assets/ui/heart.png');
