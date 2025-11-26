@@ -40,7 +40,7 @@ export class Preloader extends Phaser.Scene {
     this.load.image('Baleia','/assets/peixes 64/Baleia.png')
     
     // == Carregamento do píer ===
-    this.load.image('pier','/assets/cenario/pier.png')
+    this.load.image('pier','/assets/cenario/Trapiche-museu.png')
 }
 
     // Método create: executado após o carregamento dos assets
