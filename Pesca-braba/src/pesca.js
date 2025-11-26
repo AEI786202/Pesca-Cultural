@@ -8,9 +8,54 @@ export class Play extends Phaser.Scene {
 
     // Método create: executado uma vez quando a cena é criada
     create() {
+        // Define as listas de sons
+        this.hurtSounds = ['grunt1', 'grunt2', 'grunt3'];
+        this.splashSounds = ['splash1', 'splash2'];
+        this.treasureSounds = ['treasure1', 'treasure2', 'treasure3', 'treasure4', 'treasure5', 'treasure6'];
+        this.bgmTracks = ['bgm1', 'bgm2', 'bgm3', 'bgm4', 'bgm5', 'bgm6', 'bgm7'];
+
+        // Lógica da Música de Fundo Aleatória
+        // Para qualquer música anterior (caso tenha reiniciado o jogo)
+        this.sound.stopAll(); // Para músicas anteriores
+
+        // 1. Recupera qual foi a última música tocada (se houver)
+        const lastBgm = this.registry.get('lastBgm');
+
+        // 2. Cria uma lista de músicas possíveis EXCLUINDO a última
+        let availableTracks = this.bgmTracks;
+        if (lastBgm) {
+            availableTracks = this.bgmTracks.filter(track => track !== lastBgm);
+        }
+
+        // 3. Sorteia uma música apenas da lista filtrada
+        const randomBgmKey = Phaser.Utils.Array.GetRandom(availableTracks);
+
+        // 4. Salva a nova música na memória para a próxima vez
+        this.registry.set('lastBgm', randomBgmKey);
+
+        // === AQUI É A MUDANÇA: MAPA DE VOLUMES ===
+        const musicVolumes = {
+            'bgm5': 0.3,
+            'bgm6': 0.3
+        };
+
+        // Define o volume (usa 0.4 se não estiver no mapa)
+        const finalVolume = musicVolumes[randomBgmKey] !== undefined ? musicVolumes[randomBgmKey] : 0.4;
+
+        // Toca a música
+        this.bgMusic = this.sound.add(randomBgmKey, { volume: finalVolume, loop: true });
+
+        if (!this.sound.locked) {
+            this.bgMusic.play();
+        } else {
+            this.sound.once(Phaser.Sound.Events.UNLOCKED, () => {
+                this.bgMusic.play();
+            });
+        }
         // Obtém as dimensões da tela
-        const width = this.scale.width;  
-        const height = this.scale.height; 
+
+        const width = this.scale.width;
+        const height = this.scale.height;
 
         // === Sistema de Pontuação ===
         this.score = 0;
@@ -34,30 +79,44 @@ export class Play extends Phaser.Scene {
 
         // === Sistema de Vidas ===
         this.lives = 3;  // Jogador começa com 3 vidas
-        this.livesText = this.add.text(20, 60, 'Vidas: 3', {
-            fontSize: '24px',
-            fill: '#ff0000',
-            fontFamily: 'Arial, sans-serif',
-            stroke: '#000000',
-            strokeThickness: 4
-        }).setScrollFactor(0).setDepth(100);
+        this.livesGroup = this.add.group();
+
+        // Função para desenhar os corações na tela
+        this.drawHearts = () => {
+            // Limpa os corações antigos antes de desenhar os novos
+            this.livesGroup.clear(true, true);
+
+            // Loop para criar um coração para cada vida restante
+            for (let i = 0; i < this.lives; i++) {
+                // Posiciona os corações um ao lado do outro (30px + deslocamento)
+                const heart = this.add.image(30 + (i * 40), 60, 'heart')
+                    .setDisplaySize(30, 30)           // Ajuste o tamanho se precisar
+                    .setScrollFactor(0)    // Fixa na tela (HUD)
+                    .setDepth(100);        // Garante que fique na frente de tudo
+
+                this.livesGroup.add(heart);
+            }
+        };
+
+        // Chama a função pela primeira vez para desenhar os 3 corações iniciais
+        this.drawHearts();
 
         // === Criação do fundo com gradiente animado ===
         // Cria uma textura dinâmica usando canvas
-        this.bgTexture = this.textures.createCanvas('bgCanvas', width, height); 
+        this.bgTexture = this.textures.createCanvas('bgCanvas', width, height);
         // Adiciona a imagem do canvas à cena na posição (0,0)
-        this.bgSprite = this.add.image(0, 0, 'bgCanvas').setOrigin(0, 0).setDepth(-2); 
+        this.bgSprite = this.add.image(0, 0, 'bgCanvas').setOrigin(0, 0).setDepth(-2);
         this.waveOffset = 300;  // Valor inicial para animação das ondas
-        
+
         // === Configuração de escalas relativas ao tamanho da tela ===
         this.playerScale = width / 600;  // Escala proporcional para o pescador
         this.baitScale = this.playerScale * 0.1;  // Escala proporcional para a isca
-        
+
         // === Criação do pescador ===
         // Posiciona o pescador em um ponto fixo da tela (não depende do pier)
         const fixedPlayerY = height * 0.4;  // Posição fixa: 39% da altura da tela
         this.player = this.add.sprite(width / 2, fixedPlayerY, 'fisher').setScale(this.playerScale);
-        
+
         // === ADIÇÃO DO PIER ===
         // Carrega a imagem do pier e a posiciona abaixo dos pés do pescador
         this.pier = this.add.image(width / 2, height - 50, 'pier').setOrigin(0.5, 1.3);
@@ -65,22 +124,22 @@ export class Play extends Phaser.Scene {
         const pierScale = Math.min(width / 800, height / 600) * 0.6;
         this.pier.setScale(pierScale);
         // Coloca o pier em uma camada abaixo do pescador mas acima do fundo
-        this.pier.setDepth(-1); 
-        
+        this.pier.setDepth(-1);
+
         // === Criação da hitbox (área de colisão) da isca ===
         // Retângulo vermelho semitransparente para detectar colisões
-        this.baitHitbox = this.add.rectangle(width / 2, height / 2, 15, 15, 0xff0000, 0.5); 
+        this.baitHitbox = this.add.rectangle(width / 2, height / 2, 15, 15, 0xff0000, 0.5);
         this.baitHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
         this.baitHitbox.setStrokeStyle(2, 0xffffff);  // Adiciona contorno branco
         this.baitHitbox.setVisible(true);  // Torna visível para debugging
-        
+
         // === Criação da imagem da isca ===
         // A imagem da isca seguirá a posição da hitbox
-        this.bait = this.add.image(this.baitHitbox.x, this.baitHitbox.y, 'bait').setScale(this.baitScale); 
+        this.bait = this.add.image(this.baitHitbox.x, this.baitHitbox.y, 'bait').setScale(this.baitScale);
 
         // === Criação da linha de pesca ===
         // Objeto Graphics permite desenhar formas primitivas
-        this.line = this.add.graphics(); 
+        this.line = this.add.graphics();
 
         // === Define os limites de movimento da isca ===
         this.bounds = {
@@ -115,7 +174,7 @@ export class Play extends Phaser.Scene {
         });
 
         // === Criação das animações do pescador ===
-        
+
         // Animação de idle (repouso)
         this.anims.create({
             key: 'idle',                 // Nome da animação
@@ -126,7 +185,7 @@ export class Play extends Phaser.Scene {
 
         // Animação de abaixar a vara
         this.anims.create({
-            key: 'rod_down', 
+            key: 'rod_down',
             frames: this.anims.generateFrameNumbers('fisher', { start: 31, end: 34 }),
             frameRate: 15,
             repeat: 0                    // Não repetir (executa uma vez)
@@ -134,7 +193,7 @@ export class Play extends Phaser.Scene {
 
         // Animação de levantar a vara
         this.anims.create({
-            key: 'rod_up', 
+            key: 'rod_up',
             frames: this.anims.generateFrameNumbers('fisher', { start: 33, end: 36 }),
             frameRate: 15,
             repeat: 0
@@ -142,7 +201,7 @@ export class Play extends Phaser.Scene {
 
         // Animação de pescar
         this.anims.create({
-            key: 'catch', 
+            key: 'catch',
             frames: this.anims.generateFrameNumbers('fisher', { start: 29, end: 36 }),
             frameRate: 15,
             repeat: 0
@@ -155,10 +214,10 @@ export class Play extends Phaser.Scene {
         // === Configuração de eventos de animação ===
         // Ouvinte disparado quando uma animação termina
         this.player.on('animationcomplete', anim => {
-            if (anim.key === 'catch') { 
+            if (anim.key === 'catch') {
                 this.isCatching = false;           // Finaliza o estado de pesca
                 this.player.play('idle', true);    // Volta para animação de idle
-                this.currentAnim = 'idle'; 
+                this.currentAnim = 'idle';
                 // Não reseta catchTriggered aqui - só reseta quando a isca se afastar
             } else if (['rod_down', 'rod_up'].includes(anim.key) && !this.isCatching) {
                 this.player.play('idle', true);    // Volta para idle após mover a vara
@@ -214,6 +273,8 @@ export class Play extends Phaser.Scene {
             callbackScope: this,
             loop: true
         });
+
+        this.lastSplashTime = 0;
     }
 
     // === Função para atualizar o timer ===
@@ -234,7 +295,7 @@ export class Play extends Phaser.Scene {
         if (this.gameTime <= 30) {
             // Pisca o texto em vermelho
             this.timerText.setFill(this.gameTime % 2 === 0 ? '#ff0000' : '#ffffff');
-            
+
             // Efeito sonoro ou visual adicional pode ser adicionado aqui
             if (this.gameTime === 30) {
                 // Alerta visual para os últimos 30 segundos
@@ -251,7 +312,7 @@ export class Play extends Phaser.Scene {
                         align: 'center'
                     }
                 ).setOrigin(0.5).setDepth(150);
-                
+
                 // Remove o texto de aviso após 2 segundos
                 this.time.delayedCall(2000, () => {
                     warningText.destroy();
@@ -278,7 +339,7 @@ export class Play extends Phaser.Scene {
     checkEnemyCollisions() {
         // Se o jogo acabou, não verifica colisões
         if (this.gameEnded) return;
-        
+
         // Só verifica colisões se não estiver invulnerável
         if (this.isInvulnerable) return;
 
@@ -313,13 +374,17 @@ export class Play extends Phaser.Scene {
     takeDamage(damage, enemyType) {
         // Reduz vidas
         this.lives -= damage;
-        this.livesText.setText(`Vidas: ${this.lives}`);
+        this.drawHearts();
+
+        // TOCA SOM ALEATÓRIO DE DANO (GRUNT)
+        const randomHurtSfx = Phaser.Utils.Array.GetRandom(this.hurtSounds);
+        this.sound.play(randomHurtSfx, { volume: 0.8 });
 
         // Efeito visual de dano
         const damageText = this.add.text(
-            this.player.x, 
-            this.player.y - 80, 
-            `-${damage} vida!`, 
+            this.player.x,
+            this.player.y - 80,
+            `-${damage} vida!`,
             {
                 fontSize: '20px',
                 fill: '#ff0000',
@@ -344,7 +409,7 @@ export class Play extends Phaser.Scene {
         // Efeito visual no pescador (piscar)
         this.isInvulnerable = true;
         this.invulnerabilityTimer = 0;
-        
+
         // Efeito de piscar
         const blinkInterval = setInterval(() => {
             this.player.setAlpha(this.player.alpha === 1 ? 0.3 : 1);
@@ -390,9 +455,9 @@ export class Play extends Phaser.Scene {
 
         // Efeito visual de final do jogo
         const finalText = this.add.text(
-            this.scale.width / 2, 
-            this.scale.height / 2, 
-            `${title}\n\nPontuação Final: ${this.score}\n\nClique para jogar novamente`, 
+            this.scale.width / 2,
+            this.scale.height / 2,
+            `${title}\n\nPontuação Final: ${this.score}\n\nClique para jogar novamente`,
             {
                 fontSize: '32px',
                 fill: '#ff0000',
@@ -463,7 +528,7 @@ export class Play extends Phaser.Scene {
 
         // === Criação da hitbox do peixe ===
         // Cria um retângulo vermelho semitransparente para a hitbox do peixe
-        const fishHitbox = this.add.rectangle(fish.x, fish.y, fish.width, fish.height, 0xff0000, 0.4); 
+        const fishHitbox = this.add.rectangle(fish.x, fish.y, fish.width, fish.height, 0xff0000, 0.4);
         fishHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
         fishHitbox.setStrokeStyle(2, 0xff0000);  // Adiciona contorno vermelho
         fishHitbox.setVisible(true);  // Torna visível para debugging
@@ -503,7 +568,7 @@ export class Play extends Phaser.Scene {
 
             // === Criação da hitbox da baleia ===
             // Cria um retângulo azul semitransparente para a hitbox da baleia
-            const whaleHitbox = this.add.rectangle(whale.x, whale.y, whale.width, whale.height, 0x0000ff, 0.4); 
+            const whaleHitbox = this.add.rectangle(whale.x, whale.y, whale.width, whale.height, 0x0000ff, 0.4);
             whaleHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
             whaleHitbox.setStrokeStyle(2, 0x0000ff);  // Adiciona contorno azul
             whaleHitbox.setVisible(true);  // Torna visível para debugging
@@ -543,13 +608,13 @@ export class Play extends Phaser.Scene {
         // === Criação da hitbox do tesouro ===
         // Cria um retângulo verde semitransparente para a hitbox do tesouro (80% do tamanho do sprite)
         const treasureHitbox = this.add.rectangle(
-            treasure.x, 
-            treasure.y, 
-            treasure.width * 0.8, 
-            treasure.height * 0.8, 
-            0x00ff00, 
+            treasure.x,
+            treasure.y,
+            treasure.width * 0.8,
+            treasure.height * 0.8,
+            0x00ff00,
             0.4
-        ); 
+        );
         treasureHitbox.setOrigin(0.5, 0.5);  // Define a origem para o centro
         treasureHitbox.setStrokeStyle(2, 0x00ff00);  // Adiciona contorno verde
         treasureHitbox.setVisible(true);  // Torna visível para debugging
@@ -624,21 +689,21 @@ export class Play extends Phaser.Scene {
             const speed = fish.getData('speed');
             // Obtém a hitbox associada ao peixe
             const fishHitbox = fish.getData('hitbox');
-            
+
             // Move o peixe baseado na velocidade e tempo delta
             fish.x += speed * (this.game.loop.delta / 1000);
-            
+
             // Move a hitbox junto com o peixe
             if (fishHitbox) {
                 fishHitbox.x = fish.x;
                 fishHitbox.y = fish.y;
             }
-            
+
             // Remove peixes que saíram da tela
             if ((speed > 0 && fish.x > width + 100) || (speed < 0 && fish.x < -100)) {
                 // Destroi tanto o peixe quanto sua hitbox
                 fish.destroy();
-                if (fishHitbox) fishHitbox.destroy();                
+                if (fishHitbox) fishHitbox.destroy();
             }
         });
     }
@@ -652,21 +717,21 @@ export class Play extends Phaser.Scene {
             const speed = whale.getData('speed');
             // Obtém a hitbox associada à baleia
             const whaleHitbox = whale.getData('hitbox');
-            
+
             // Move a baleia baseado na velocidade e tempo delta
             whale.x += speed * (this.game.loop.delta / 1000);
-            
+
             // Move a hitbox junto com a baleia
             if (whaleHitbox) {
                 whaleHitbox.x = whale.x;
                 whaleHitbox.y = whale.y;
             }
-            
+
             // Remove baleias que saíram da tela
             if ((speed > 0 && whale.x > width + 150) || (speed < 0 && whale.x < -150)) {
                 // Destroi tanto a baleia quanto sua hitbox
                 whale.destroy();
-                if (whaleHitbox) whaleHitbox.destroy();                
+                if (whaleHitbox) whaleHitbox.destroy();
             }
         });
     }
@@ -674,32 +739,32 @@ export class Play extends Phaser.Scene {
     // === Atualização dos tesouros ===
     updateTreasures() {
         const width = this.scale.width;
-        
+
         // Processa cada tesouro no grupo
         this.treasureGroup.getChildren().forEach(treasure => {
             const speed = treasure.getData('speed');
             const treasureHitbox = treasure.getData('hitbox');
             const isCaught = treasure.getData('isCaught');
-            
+
             if (!isCaught) {
                 // Tesouro não capturado: move normalmente
                 treasure.x += speed * (this.game.loop.delta / 1000);
-                
+
                 // Move a hitbox junto com o tesouro
                 if (treasureHitbox) {
                     treasureHitbox.x = treasure.x;
                     treasureHitbox.y = treasure.y;
                 }
-                
+
                 // Verifica colisão com a isca usando overlap de retângulos
                 const baitBounds = this.baitHitbox.getBounds();
                 const treasureBounds = treasureHitbox.getBounds();
-                
+
                 // Se houve colisão entre a isca e o tesouro
                 if (Phaser.Geom.Rectangle.Overlaps(baitBounds, treasureBounds)) {
                     treasure.setData('isCaught', true);  // Marca como capturado
                     this.caughtTreasure = treasure;      // Armazena referência
-                    
+
                     // Efeito visual de captura (amarelo)
                     treasure.setTint(0xffff00);
                     treasureHitbox.setFillStyle(0xffff00, 0.5);
@@ -708,7 +773,7 @@ export class Play extends Phaser.Scene {
                 // Tesouro capturado: segue a isca
                 treasure.x = this.baitHitbox.x;
                 treasure.y = this.baitHitbox.y + 20;  // Offset para ficar abaixo da isca
-                
+
                 // Move a hitbox junto com o tesouro
                 if (treasureHitbox) {
                     treasureHitbox.x = treasure.x;
@@ -717,7 +782,7 @@ export class Play extends Phaser.Scene {
                 
                 // AJUSTE: Verifica se chegou perto do pescador para coleta
                 const distToPlayer = Phaser.Math.Distance.Between(
-                    treasure.x, treasure.y, 
+                    treasure.x, treasure.y,
                     this.player.x, this.player.y
                 );
                 
@@ -726,11 +791,11 @@ export class Play extends Phaser.Scene {
                     this.collectTreasure(treasure);
                 }
             }
-            
+
             // Remove tesouros que saíram da tela (apenas os não capturados)
             if (!isCaught && ((speed > 0 && treasure.x > width + 100) || (speed < 0 && treasure.x < -100))) {
                 treasure.destroy();
-                if (treasureHitbox) treasureHitbox.destroy();                
+                if (treasureHitbox) treasureHitbox.destroy();
             }
         });
     }
@@ -739,16 +804,20 @@ export class Play extends Phaser.Scene {
     collectTreasure(treasure) {
         const treasureValue = treasure.getData('value');
         const treasureHitbox = treasure.getData('hitbox');
-        
+
         // Adiciona pontuação
         this.score += treasureValue;
         this.scoreText.setText(`Pontuação: ${this.score}`);
-        
+
+        // TOCA SOM ALEATÓRIO DE TESOURO
+        const randomTreasureSfx = Phaser.Utils.Array.GetRandom(this.treasureSounds);
+        this.sound.play(randomTreasureSfx, { volume: 0.6 });
+
         // Efeito visual de coleta - texto flutuante
         const collectText = this.add.text(
-            this.player.x, 
-            this.player.y - 50, 
-            `+${treasureValue}`, 
+            this.player.x,
+            this.player.y - 50,
+            `+${treasureValue}`,
             {
                 fontSize: '20px',
                 fill: '#ffff00',
@@ -757,7 +826,7 @@ export class Play extends Phaser.Scene {
                 strokeThickness: 3
             }
         ).setDepth(100);
-        
+
         // Animação do texto flutuante (sobe e desaparece)
         this.tweens.add({
             targets: collectText,
@@ -769,11 +838,11 @@ export class Play extends Phaser.Scene {
                 collectText.destroy();
             }
         });
-        
+
         // Remove o tesouro e sua hitbox
         treasure.destroy();
         if (treasureHitbox) treasureHitbox.destroy();
-        
+
         // Limpa a referência do tesouro capturado
         if (this.caughtTreasure === treasure) {
             this.caughtTreasure = null;
@@ -789,7 +858,7 @@ export class Play extends Phaser.Scene {
 
         // Cria um gradiente linear com cores que variam com o tempo
         const gradient = ctx.createLinearGradient(0, 0, 0, height);
-        const lightness = 50 + Math.sin(this.waveOffset) * 10; 
+        const lightness = 50 + Math.sin(this.waveOffset) * 10;
         const darkLightness = 20 + Math.sin(this.waveOffset + Math.PI / 2) * 10;
         gradient.addColorStop(0, `hsl(200, 80%, ${lightness}%)`);
         gradient.addColorStop(1, `hsl(220, 80%, ${darkLightness}%)`);
@@ -803,7 +872,7 @@ export class Play extends Phaser.Scene {
     updateBait() {
         // === Movimento da hitbox da isca ===
         if (!this.targetPos) return;
-        
+
         // Limita a posição alvo aos limites definidos
         const clampedX = Phaser.Math.Clamp(this.targetPos.x, this.bounds.left, this.bounds.right);
         const clampedY = Phaser.Math.Clamp(this.targetPos.y, this.bounds.top, this.bounds.bottom);
@@ -821,22 +890,29 @@ export class Play extends Phaser.Scene {
     // === Atualização das animações do pescador ===
     updateRodAnimation() {
         // === Detecção de movimento vertical para animações ===
-        if (this.lastPointerY !== null && !this.isCatching) { 
+        if (this.lastPointerY !== null && !this.isCatching) {
             const deltaY = this.baitHitbox.y - this.lastPointerY;  // Diferença de posição Y
             const threshold = 2.5;  // Limite mínimo para considerar movimento
             // Suaviza a diferença para evitar animações tremulas
-            this.smoothDeltaY = this.smoothDeltaY * 0.7 + deltaY * 0.3; 
+            this.smoothDeltaY = this.smoothDeltaY * 0.7 + deltaY * 0.3;
 
             // Decide qual animação reproduzir baseada no movimento
             if (this.smoothDeltaY > threshold && this.currentAnim !== 'rod_down') {
                 this.player.play('rod_down', true);  // Move vara para baixo
-                this.currentAnim = 'rod_down'; 
+                this.currentAnim = 'rod_down';
+                const now = this.time.now; // Pega o tempo atual do jogo
+                if (now - this.lastSplashTime > 1000) { // Só entra se passou 300ms
+                    const randomSplash = Phaser.Utils.Array.GetRandom(this.splashSounds);
+                    this.sound.play(randomSplash, { volume: 0.5 });
+
+                    this.lastSplashTime = now; // Atualiza a hora do último som
+                }
             } else if (this.smoothDeltaY < -threshold && this.currentAnim !== 'rod_up') {
                 this.player.play('rod_up', true);    // Move vara para cima
-                this.currentAnim = 'rod_up'; 
+                this.currentAnim = 'rod_up';
             } else if (Math.abs(this.smoothDeltaY) <= threshold && this.currentAnim !== 'idle') {
                 this.player.play('idle', true);      // Volta ao repouso
-                this.currentAnim = 'idle'; 
+                this.currentAnim = 'idle';
             }
         }
         this.lastPointerY = this.baitHitbox.y;  // Armazena a posição atual para o próximo frame
@@ -846,7 +922,7 @@ export class Play extends Phaser.Scene {
     checkCatch() {
         // === Verificação de captura (quando a isca está perto do pescador) ===
         const dist = Phaser.Math.Distance.Between(
-            this.baitHitbox.x, this.baitHitbox.y, 
+            this.baitHitbox.x, this.baitHitbox.y,
             this.player.x, this.player.y
         );
         
@@ -856,7 +932,7 @@ export class Play extends Phaser.Scene {
             this.isCatching = true;           // Ativa estado de pesca
             this.catchTriggered = true;       // Marca que já foi ativada (trigger único)
             this.player.play('catch', true);  // Reproduz animação de pescar
-            this.currentAnim = 'catch'; 
+            this.currentAnim = 'catch';
         }
         
         // AJUSTE: Reseta o trigger quando a isca se afastar (permite nova ativação)
@@ -868,12 +944,12 @@ export class Play extends Phaser.Scene {
     // === Atualização da vara e da linha ===
     updateRodAndLine(width) {
         // Fatores de escala para adaptar a diferentes tamanhos de tela
-        const scaleFactor = this.player.scaleX; 
-        const widthFactor = width / 800; 
+        const scaleFactor = this.player.scaleX;
+        const widthFactor = width / 800;
 
         // Posição alvo da ponta da vara (depende da animação atual)
-        let playerRodX = this.player.x; 
-        let playerRodY = this.player.y; 
+        let playerRodX = this.player.x;
+        let playerRodY = this.player.y;
 
         // Ajusta a posição da ponta da vara baseado na animação
         switch (this.currentAnim) {
@@ -890,17 +966,17 @@ export class Play extends Phaser.Scene {
         }
 
         // Suaviza o movimento da ponta da vara
-        this.smoothRod.x = Phaser.Math.Linear(this.smoothRod.x, playerRodX, 0.90); 
-        this.smoothRod.y = Phaser.Math.Linear(this.smoothRod.y, playerRodY, 0.90); 
-        
+        this.smoothRod.x = Phaser.Math.Linear(this.smoothRod.x, playerRodX, 0.90);
+        this.smoothRod.y = Phaser.Math.Linear(this.smoothRod.y, playerRodY, 0.90);
+
         // Atualiza a linha de pesca
         this.updateFishingLine();
     }
 
     // Método update: executado a cada frame (aproximadamente 60 vezes por segundo)
     update() {
-        const width = this.scale.width; 
-        const height = this.scale.height; 
+        const width = this.scale.width;
+        const height = this.scale.height;
 
         // === Atualização do fundo animado ===
         this.updateBackground(width, height);
