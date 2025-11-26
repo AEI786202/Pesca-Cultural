@@ -178,14 +178,15 @@ export class Play extends Phaser.Scene {
         // Lista de tipos de tesouros disponíveis
         this.treasureTypes = ['Caveira', 'Mascara', 'Relogio', 'Vaso', 'Vaso2', 'zarabatana'];
 
-        // === Timer para spawn de peixes ===
-        // Cria um evento que chama spawnFish em intervalos regulares
-        this.time.addEvent({
-            delay: 900,        // A cada 0.9 segundos
-            callback: this.spawnFish,
-            callbackScope: this,
-            loop: true
-        });
+        // === Timer para spawn de peixes (PROGRESSIVO) ===
+        // Em vez de usar um evento com delay fixo, usamos um agendador
+        // que ajusta o intervalo com base no tempo restante do jogo.
+        // No início spawnam menos peixes (delay maior) e, quando
+        // faltar 30s, alcança a frequência original (900ms).
+        this.fishMinDelay = 900;   // delay mínimo (ms) — frequência alvo quando faltar 30s
+        this.fishMaxDelay = 2500;  // delay máximo (ms) — mais raro no início
+        this.fishSpawnTimer = null;
+        this.scheduleNextFishSpawn();
 
         // === Timer para spawn de baleias ===
         // Cria um evento que chama spawnWhale em intervalos mais longos (mais raro)
@@ -567,6 +568,37 @@ export class Play extends Phaser.Scene {
         treasure.setData('hitbox', treasureHitbox);  // Armazena a hitbox associada a este tesouro
         treasure.setData('isCaught', false);  // Estado inicial: não capturado
         treasure.setData('value', 50);  // Valor aleatório entre 10-50 pontos
+    }
+
+    // === CÁLCULO E AGENDAMENTO PROGRESSIVO DO SPAWN DE PEIXES ===
+    // Calcula o delay em ms com base no tempo restante do jogo.
+    computeFishDelay() {
+        // Mapeia linearmente gameTime (segundos) de [180..30] para delay [fishMaxDelay..fishMinDelay]
+        const gameTime = typeof this.gameTime === 'number' ? this.gameTime : 0;
+        const start = 180; // início do jogo (segundos)
+        const end = 30;    // ponto em que queremos atingir a frequência mínima
+        const minDelay = this.fishMinDelay || 1000;
+        const maxDelay = this.fishMaxDelay || 2500;
+
+        // Normaliza entre 0 e 1
+        const t = Phaser.Math.Clamp((gameTime - end) / (start - end), 0, 1);
+        // Quando t == 1 -> início do jogo -> delay = maxDelay (mais raro)
+        // Quando t == 0 -> chegada em end -> delay = minDelay (mais frequente)
+        // Mapeia t de forma que no início usemos delay maior e no final delay menor
+        return Math.round(minDelay + t * (maxDelay - minDelay));
+    }
+
+    // Agenda o próximo spawn de peixe de maneira recursiva
+    scheduleNextFishSpawn() {
+        if (this.gameEnded) return;
+        const delay = this.computeFishDelay();
+        // Armazena referência para poder cancelar, se necessário
+        this.fishSpawnTimer = this.time.delayedCall(delay, () => {
+            if (this.gameEnded) return;
+            this.spawnFish();
+            // Agenda o próximo
+            this.scheduleNextFishSpawn();
+        }, [], this);
     }
 
     // === Atualização da linha de pesca ===
