@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Preloader } from './preloader.js';
+import { Menu } from './menu.js';
 import { Play } from './pesca.js';
 
 // Configuração principal do jogo Phaser
@@ -17,6 +18,7 @@ const config = {
     },
     scene: [                        // Lista de cenas do jogo (em ordem de execução)
         Preloader,                  // Primeiro: carrega assets
+        Menu,                       // Menu inicial com instruções e botão
         Play                        // Depois: cena principal do jogo
     ]
 };
