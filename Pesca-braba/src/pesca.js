@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import Phaser, { Display } from 'phaser';
 
 // Define a cena principal do jogo que herda da classe Scene do Phaser
 export class Play extends Phaser.Scene {
@@ -236,6 +236,8 @@ export class Play extends Phaser.Scene {
         this.whaleTypes = ['Baleia'];
         // Lista de tipos de tesouros disponíveis
         this.treasureTypes = ['Caveira', 'Mascara', 'Relogio', 'Vaso', 'Vaso2', 'zarabatana'];
+        // Lista todos os tesouros menores
+        this.smallTreasureTypes = ['Caveira-pequeno', 'Mascara-pequeno', 'Relogio-pequeno', 'Vaso-pequeno', 'Vaso2-pequeno', 'zarabatana-pequeno'];
 
         // === Timer para spawn de peixes (PROGRESSIVO) ===
         // Em vez de usar um evento com delay fixo, usamos um agendador
@@ -634,6 +636,36 @@ export class Play extends Phaser.Scene {
         treasure.setData('isCaught', false);  // Estado inicial: não capturado
         treasure.setData('value', 50);  // Valor aleatório entre 10-50 pontos
     }
+    //== Função que mostra o tesouro capturado ==
+    // Deve mostrar o tesouro capturado pelo pescador em cima da tela, com um texto indicando o nome do tesouro
+    showTreasure(){
+        if(this.caughtTreasure){
+            // Mostra o nome do tesouro capturado
+            const treasureName = this.caughtTreasure.texture.key;
+            const treasureText = this.add.text(
+                this.scale.width / 2,
+                80,
+                `Tesouro Capturado: ${treasureName}`,
+                {
+                    fontSize: '28px',
+                    fill: '#ffff00',
+                    fontFamily: 'Arial, sans-serif',
+                    stroke: '#000000',
+                    strokeThickness: 4,
+                    align: 'center'
+                }
+            ).setOrigin(0.5).setDepth(150);
+
+            // Cria a imagem do tesouro pequeno abaixo do texto
+            const treasureImage = this.add.image(this.scale.width / 2, 150, this.caughtTreasure.texture.key ).setScale(1).setDepth(150);
+
+            // Remove o texto e a imagem após 3 segundos
+            this.time.delayedCall(3000, () => {
+                treasureText.destroy();
+                treasureImage.destroy();
+            });
+        }
+    }
 
     // === CÁLCULO E AGENDAMENTO PROGRESSIVO DO SPAWN DE PEIXES ===
     // Calcula o delay em ms com base no tempo restante do jogo.
@@ -933,6 +965,7 @@ export class Play extends Phaser.Scene {
             this.catchTriggered = true;       // Marca que já foi ativada (trigger único)
             this.player.play('catch', true);  // Reproduz animação de pescar
             this.currentAnim = 'catch';
+            this.showTreasure();          // Mostra o tesouro capturado, se houver
         }
         
         // AJUSTE: Reseta o trigger quando a isca se afastar (permite nova ativação)
