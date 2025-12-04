@@ -1,12 +1,12 @@
 # 🎣 Pesca Cultural
 
-## Premissa
+## 📝🎮 Premissa
 
-Em um cenário lúdico e educativo, o jogador assume o papel de um pescador curioso que, em vez de capturar peixes, resgata **obras de arte perdidas**. Essas obras pertencem ao museu de São José. A missão é recolher o maior número de peças, evitando perigos aquáticos como águas-vivas e tubarões.
+Em um cenário lúdico e educativo, o jogador assume o papel de um pescador curioso que, em vez de capturar peixes, resgata **obras de arte perdidas**. Essas obras pertencem ao museu de São José. A missão é recolher o maior número de peças, evitando animais marítmos, como baleias e peixes.
 
 Cada peça resgatada representa um pedaço da cultura que deve ser devolvido ao museu, reforçando a ideia de preservação e valorização da arte.
 
-## Referências
+## 🎨 Referências
 
 O projeto se inspira em minigames clássicos de pesca, principalmente o **Ice Fishing** do Club Penguin, mas com uma roupagem cultural. Além disso, elementos visuais e de jogabilidade foram pensados a partir de referências como:
 
@@ -14,20 +14,20 @@ O projeto se inspira em minigames clássicos de pesca, principalmente o **Ice Fi
 * Stardew Valley (minigame de pesca);
 * Dave the Diver.
 
-## Jogo Ideal
+## 🎮 Jogo Ideal
 
-Um jogo **2D casual** feito para rodar no navegador. Utilizando **Phaser 3** e **JavaScript**, o jogador controla um anzol com o **mouse**, movimentando-o horizontal e verticalmente dentro do lago.
+Um jogo **2D casual** feito para rodar no navegador. Utilizando **Phaser 3** e **JavaScript**, o jogador controla um anzol com o **mouse** ou com o **toque**, movimentando-o horizontalmente e verticalmente dentro do mar.
 
-O objetivo é capturar esculturas e obras, acumulando pontos, e evitar armadilhas naturais (águas-vivas e tubarões). Em versões futuras, poderá existir a possibilidade de adquirir **isco especial** para desbloquear obras raras e valiosas.
+O objetivo é capturar as obras, acumulando pontos, e evitar capturar os animais marítmos (peixes e baleias).
 
-## Regras
+## 📏 Regras
 
 * O jogador controla o anzol movendo o cursor do mouse.
 * Capturar esculturas aumenta a pontuação.
-* Colidir com armadilhas ou tubarões reduz pontos.
-* O jogo termina ao fim do tempo (futuro recurso) ou quando atingir determinada condição de pontuação.
+* Capturar peixes ou baleias reduz vidas.
+* O jogo termina ao fim do tempo ou quando não tiver mais vidas.
 
-## Objetivo
+## 🎯 Objetivo
 
 Oferecer uma experiência divertida e educativa, promovendo a valorização da arte e do patrimônio cultural local por meio de uma mecânica simples e acessível de pesca virtual.
 
@@ -47,3 +47,4 @@ Oferecer uma experiência divertida e educativa, promovendo a valorização da a
 3. Some pontos e salve o patrimônio cultural do museu!
 
 ---
+###### Projeto desenvolvido por Kaléu Borges Augusto, Daniel Bentes Perquim e Andrey Rosa Nunis como parte da disciplina "Atividades de Extensão I".
