@@ -1,4 +1,4 @@
-import Phaser, { Display } from 'phaser';
+import Phaser from 'phaser';
 
 // Define a cena principal do jogo que herda da classe Scene do Phaser
 export class Play extends Phaser.Scene {
@@ -236,9 +236,7 @@ export class Play extends Phaser.Scene {
         this.whaleTypes = ['Baleia'];
         // Lista de tipos de tesouros disponíveis
         this.treasureTypes = ['Caveira', 'Mascara', 'Relogio', 'Vaso', 'Vaso2', 'zarabatana'];
-        // Lista todos os tesouros menores
-        this.smallTreasureTypes = ['Caveira-pequeno', 'Mascara-pequeno', 'Relogio-pequeno', 'Vaso-pequeno', 'Vaso2-pequeno', 'zarabatana-pequeno'];
-
+       
         // === Timer para spawn de peixes (PROGRESSIVO) ===
         // Em vez de usar um evento com delay fixo, usamos um agendador
         // que ajusta o intervalo com base no tempo restante do jogo.
@@ -657,7 +655,7 @@ export class Play extends Phaser.Scene {
             ).setOrigin(0.5).setDepth(150);
 
             // Cria a imagem do tesouro pequeno abaixo do texto
-            const treasureImage = this.add.image(this.scale.width / 2, 150, this.caughtTreasure.texture.key ).setScale(1).setDepth(150);
+            const treasureImage = this.add.image(this.scale.width / 2, 150, this.caughtTreasure.texture.key + "-grande" ).setScale(1).setDepth(150);
 
             // Remove o texto e a imagem após 3 segundos
             this.time.delayedCall(3000, () => {
