@@ -645,7 +645,7 @@ export class Play extends Phaser.Scene {
                 80,
                 `Tesouro Capturado: ${treasureName}`,
                 {
-                    fontSize: '28px',
+                    fontSize: '20px',
                     fill: '#ffff00',
                     fontFamily: 'Arial, sans-serif',
                     stroke: '#000000',
@@ -843,6 +843,8 @@ export class Play extends Phaser.Scene {
         const randomTreasureSfx = Phaser.Utils.Array.GetRandom(this.treasureSounds);
         this.sound.play(randomTreasureSfx, { volume: 0.6 });
 
+        this.showTreasure();
+
         // Efeito visual de coleta - texto flutuante
         const collectText = this.add.text(
             this.player.x,
@@ -963,7 +965,6 @@ export class Play extends Phaser.Scene {
             this.catchTriggered = true;       // Marca que já foi ativada (trigger único)
             this.player.play('catch', true);  // Reproduz animação de pescar
             this.currentAnim = 'catch';
-            this.showTreasure();          // Mostra o tesouro capturado, se houver
         }
         
         // AJUSTE: Reseta o trigger quando a isca se afastar (permite nova ativação)
