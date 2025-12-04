@@ -46,5 +46,19 @@ Oferecer uma experiência divertida e educativa, promovendo a valorização da a
 2. Capture esculturas (pontos positivos) e evite perigos.
 3. Some pontos e salve o patrimônio cultural do museu!
 
+### 🤖 Aonde jogar
+
+O jogo se encontra na página do **[Museu Histórico de São José](adicionar_link_aqui_no_futuro)**. Mas, caso não consiga acessar o site do museu, também temos uma versão disponível no **[vercel](https://pesca-cultural.vercel.app/)**. Alternativamente, você pode rodar o jogo na sua máquina local. 
+
+### 👨‍💻 Como rodar o jogo (localmente)
+
+* Clone esse repositório com o comando 'git clone'.
+
+* Pelo terminal, entre dentro da pasta /Pesca-braba com o comando 'cd'.
+
+* Execute o comando 'npm install' para instalar todas as dependências.
+
+* Depois execute o comando 'npm run dev'. Deve aparecer um link parecido com 'https:://localhost:5500' na tela. Copie e cole no seu navegador.
+
 ---
 ###### Projeto desenvolvido por Kaléu Borges Augusto, Daniel Bentes Perquim e Andrey Rosa Nunis como parte da disciplina "Atividades de Extensão I".
