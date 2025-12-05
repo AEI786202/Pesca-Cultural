@@ -785,6 +785,9 @@ export class Play extends Phaser.Scene {
                     treasureHitbox.x = treasure.x;
                     treasureHitbox.y = treasure.y;
                 }
+                
+                // Se já tem um tesouro capturado, retorna e não deixa capturar outro tesouro
+                if (this.caughtTreasure) return;
 
                 // Verifica colisão com a isca usando overlap de retângulos
                 const baitBounds = this.baitHitbox.getBounds();
