@@ -24,7 +24,7 @@ export class Menu extends Phaser.Scene {
 
         // Texto instrucional (segunda parte)
         this.add.text(width / 2, height * 0.45, 'Pesque os tesouros, mas evite as baleias e os peixes. Use o mouse ou toque na tela para controlar o anzol.', {
-            fontSize: '18px',
+            fontSize: '20px',
             fill: '#ffffff',
             fontFamily: 'Arial, sans-serif',
             align: 'center',
