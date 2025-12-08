@@ -14,8 +14,8 @@ export class Menu extends Phaser.Scene {
         this.cameras.main.setBackgroundColor(0x000000);
 
         // Texto introdutório (primeira parte)
-        this.add.text(width / 2, height * 0.15, 'Você é um pescador, que ao ver os preciosos tesouros do Museu de São José flutuando no mar, decide pesca-los.', {
-            fontSize: '18px',
+        this.add.text(width / 2, height * 0.15, 'Você é um pescador, que ao ver os preciosos tesouros do Museu de São José perdidos no mar, decide pesca-los.', {
+            fontSize: '20px',
             fill: '#ffffff',
             fontFamily: 'Arial, sans-serif',
             align: 'center',
@@ -23,7 +23,7 @@ export class Menu extends Phaser.Scene {
         }).setOrigin(0.5, 0.5);
 
         // Texto instrucional (segunda parte)
-        this.add.text(width / 2, height * 0.45, 'Pesque os tesouros, evite as baleias e os peixes. Use o mouse ou toque na tela para controlar o anzol.', {
+        this.add.text(width / 2, height * 0.45, 'Pesque os tesouros, mas evite as baleias e os peixes. Use o mouse ou toque na tela para controlar o anzol.', {
             fontSize: '18px',
             fill: '#ffffff',
             fontFamily: 'Arial, sans-serif',
