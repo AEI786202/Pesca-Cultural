@@ -17,7 +17,8 @@ body {
     gap: 30px;
     width: 100%;
     /* PONTO 3: Compactação para celular */
-    padding: 20px 10px; /* Menos padding lateral em telas pequenas */
+    padding: 20px 10px;
+    /* Menos padding lateral em telas pequenas */
     box-sizing: border-box;
 }
 
@@ -31,7 +32,8 @@ body {
 .page-header h1 {
     margin: 0;
     color: #ffc300;
-    font-size: clamp(2rem, 8vw, 3.5rem); /* Aumenta o tamanho mínimo */
+    font-size: clamp(2rem, 8vw, 3.5rem);
+    /* Aumenta o tamanho mínimo */
     /* PONTO 3: Título pixelado destacado */
     text-shadow: 4px 4px 0px #000000;
     -webkit-text-stroke: 1px #000;
@@ -46,10 +48,14 @@ body {
 
 /* ===== ESTILO DO JOGO (MAIOR E RESPONSIVO) ===== */
 #game-container-wrapper {
-    position: relative; /* Base para os botões */
-    width: 95vw; /* Ocupa 95% da largura da tela */
-    max-width: 800px; /* Limite em telas grandes */
-    aspect-ratio: 550 / 480; /* Mantém a proporção do jogo */
+    position: relative;
+    /* Base para os botões */
+    width: 95vw;
+    /* Ocupa 95% da largura da tela */
+    max-width: 800px;
+    /* Limite em telas grandes */
+    aspect-ratio: 550 / 480;
+    /* Mantém a proporção do jogo */
     margin: 0 auto;
     border: 4px solid #415a77;
     border-radius: 8px;
@@ -80,7 +86,8 @@ body {
 
 .tab-button {
     font-family: 'Press Start 2P', cursive;
-    font-size: clamp(0.7rem, 2.5vw, 0.9rem); /* Fonte menor para caber */
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+    /* Fonte menor para caber */
     padding: 15px;
     background-color: transparent;
     border: none;
@@ -88,7 +95,8 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     border-radius: 6px 6px 0 0;
-    flex-grow: 1; /* Faz os botões ocuparem espaço igual */
+    flex-grow: 1;
+    /* Faz os botões ocuparem espaço igual */
     text-align: center;
 }
 
@@ -123,10 +131,12 @@ body {
 /* PONTO 3: Imagens menores e com borda arredondada */
 .content-image {
     width: 100%;
-    max-width: 400px; /* Limita o tamanho */
+    max-width: 400px;
+    /* Limita o tamanho */
     display: block;
     margin: 15px auto 0;
-    border-radius: 8px; /* Borda arredondada */
+    border-radius: 8px;
+    /* Borda arredondada */
 }
 
 /* ===== ESTILOS DOS OVERLAYS (PLAY E FIM DE JOGO) ===== */
@@ -137,12 +147,14 @@ body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px); /* Desfoca o fundo */
+    backdrop-filter: blur(5px);
+    /* Desfoca o fundo */
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 4px; /* Combina com o wrapper */
-    
+    border-radius: 4px;
+    /* Combina com o wrapper */
+
     /* Escondido por padrão */
     display: none;
     opacity: 0;
@@ -162,7 +174,8 @@ body {
 
 /* ===== PONTO 4: ESTILO BOTÃO DE PLAY ===== */
 #play-button {
-    width: clamp(80px, 20vw, 120px); /* Tamanho responsivo */
+    width: clamp(80px, 20vw, 120px);
+    /* Tamanho responsivo */
     height: clamp(80px, 20vw, 120px);
     background-color: #ffc300;
     border: 5px solid #ffffff;
@@ -184,7 +197,8 @@ body {
     width: 50%;
     height: 50%;
     fill: #ffffff;
-    transform: translateX(10%); /* Ajusta o triângulo no centro */
+    transform: translateX(10%);
+    /* Ajusta o triângulo no centro */
 }
 
 /* ===== PONTO 5: ESTILO BOTÃO TELA CHEIA ===== */
@@ -238,7 +252,8 @@ body {
     position: absolute;
     width: 40px;
     height: 40px;
-    background-color: rgba(13, 27, 42, 0.7); /* Azul escuro semi-transparente */
+    background-color: rgba(13, 27, 42, 0.7);
+    /* Azul escuro semi-transparente */
     border: 2px solid #415a77;
     border-radius: 8px;
     cursor: pointer;
@@ -247,7 +262,8 @@ body {
     align-items: center;
     color: #e0e1dd;
     transition: all 0.2s ease;
-    z-index: 10; /* Ficar acima do canvas */
+    z-index: 10;
+    /* Ficar acima do canvas */
 }
 
 .game-ui-button:hover {

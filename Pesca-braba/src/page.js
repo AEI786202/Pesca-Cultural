@@ -31,21 +31,20 @@ const iconSoundOn = document.getElementById('icon-sound-on');
 const iconSoundOff = document.getElementById('icon-sound-off');
 
 // === CORREÇÃO VISUAL ===
-// Usamos '' (vazio) para mostrar, pois assim o SVG assume o display padrão dele
-// Usamos 'none' para esconder
+// Usamos classes CSS para garantir que o ícone apareça ou suma corretamente
 function toggleIcons(showIcon, hideIcon) {
     if (showIcon && hideIcon) {
-        showIcon.style.display = '';     // Remove o 'none', torna visível
-        hideIcon.style.display = 'none'; // Aplica o 'none', esconde
+        showIcon.classList.remove('hidden'); // Remove a classe que esconde
+        hideIcon.classList.add('hidden');    // Adiciona a classe que esconde
     }
 }
 
 if (playButton) {
     playButton.addEventListener('click', () => {
         playOverlay.classList.remove('active');
-        
+
         gameInstance = iniciarJogo();
-        
+
         // Resetar Pause (Mostra icone Pause, Esconde Play)
         isPaused = false;
         toggleIcons(iconPause, iconPlay);
@@ -55,7 +54,7 @@ if (playButton) {
         }
 
         // Resetar Mute (Mostra Som On, Esconde Som Off)
-        toggleIcons(iconSoundOn, iconSoundOff); 
+        toggleIcons(iconSoundOn, iconSoundOff);
         if (muteButton) muteButton.style.borderColor = '#415a77';
     });
 }
@@ -67,17 +66,17 @@ if (muteButton) {
 
         // Inverte o estado
         gameInstance.sound.mute = !gameInstance.sound.mute;
-        
+
         if (gameInstance.sound.mute) {
-            // Ficou MUDO -> Mostra ícone OFF, esconde ON
+            // Ficou MUDO -> Mostra ícone OFF (riscado), esconde ON
             toggleIcons(iconSoundOff, iconSoundOn);
             muteButton.style.borderColor = '#ff0000';
         } else {
-            // Ficou COM SOM -> Mostra ícone ON, esconde OFF
+            // Ficou COM SOM -> Mostra ícone ON (ondas), esconde OFF
             toggleIcons(iconSoundOn, iconSoundOff);
             muteButton.style.borderColor = '#415a77';
         }
-        
+
         muteButton.blur();
     });
 }
@@ -89,7 +88,7 @@ if (pauseButton) {
 
         const playScene = gameInstance.scene.getScene('Play');
         if (!playScene || !gameInstance.scene.isActive('Play')) {
-            if (!isPaused) return; 
+            if (!isPaused) return;
         }
 
         isPaused = !isPaused;
@@ -97,7 +96,7 @@ if (pauseButton) {
         if (isPaused) {
             gameInstance.scene.pause('Play');
             gameInstance.sound.pauseAll();
-            
+
             // Pausou -> Mostra ícone PLAY (para retomar), esconde PAUSE
             toggleIcons(iconPlay, iconPause);
             pauseButton.style.backgroundColor = '#ffc300';
@@ -111,7 +110,7 @@ if (pauseButton) {
             pauseButton.style.backgroundColor = '';
             pauseButton.style.color = '';
         }
-        
+
         pauseButton.blur();
     });
 }
