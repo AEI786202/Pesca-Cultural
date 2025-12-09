@@ -28,5 +28,17 @@ const config = {
 // new Phaser.Game(config);
 
 export function iniciarJogo() {
-     new Phaser.Game(config); 
+    new Phaser.Game(config);
+}
+
+// Variável para guardar a instância
+let game;
+
+export function iniciarJogo() {
+    if (game) {
+        // Se já existe um jogo, destruímos para criar um novo (reset)
+        game.destroy(true);
     }
+    game = new Phaser.Game(config);
+    return game; // <--- IMPORTANTE: Retornar a instância
+}

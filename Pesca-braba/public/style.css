@@ -232,3 +232,49 @@ body {
 #restart-button:hover {
     background-color: #ffc300;
 }
+
+/* Estilo geral para botões da UI (Pause, Mute) */
+.game-ui-button {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(13, 27, 42, 0.7); /* Azul escuro semi-transparente */
+    border: 2px solid #415a77;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #e0e1dd;
+    transition: all 0.2s ease;
+    z-index: 10; /* Ficar acima do canvas */
+}
+
+.game-ui-button:hover {
+    background-color: #ffc300;
+    color: #0d1b2a;
+    border-color: #000;
+}
+
+.game-ui-button svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Posição Específica do Pause (No topo, centro) */
+#pause-button {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Posição Específica do Mute (Canto superior direito) */
+#mute-button {
+    top: 10px;
+    right: 10px;
+}
+
+/* Utilitário para esconder ícones */
+.hidden {
+    display: none !important;
+}
