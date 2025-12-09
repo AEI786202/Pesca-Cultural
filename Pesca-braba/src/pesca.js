@@ -235,7 +235,7 @@ export class Play extends Phaser.Scene {
         // Lista de tipos de baleias disponíveis
         this.whaleTypes = ['Baleia'];
         // Lista de tipos de tesouros disponíveis
-        this.treasureTypes = ['Caveira', 'Mascara', 'Relogio', 'Vaso', 'Vaso2', 'zarabatana'];
+        this.treasureTypes = ['Caveira', 'Mascara', 'Relogio', 'Vaso', 'Jarro', 'Zarabatana'];
        
         // === Timer para spawn de peixes (PROGRESSIVO) ===
         // Em vez de usar um evento com delay fixo, usamos um agendador
