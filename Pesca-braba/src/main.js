@@ -27,6 +27,19 @@ const config = {
 
 // new Phaser.Game(config);
 
+// A variável 'game' deve ser declarada apenas uma vez fora da função
+let game;
+
+// A função deve ser declarada apenas uma vez
 export function iniciarJogo() {
-     new Phaser.Game(config); 
+    // Se já existir um jogo rodando, destrói ele antes de criar outro
+    if (game) {
+        game.destroy(true);
     }
+
+    // Cria o jogo e atribui à variável externa
+    game = new Phaser.Game(config);
+
+    // Retorna a instância para quem chamou (essencial para o Pause/Mute)
+    return game;
+}
