@@ -1,9 +1,8 @@
-//const Phaser = window.Phaser;
-// Importa a função de iniciar o jogo (veja o Ponto 4 abaixo)
 import { iniciarJogo } from './main.js';
 
-// Variável global para controlar a instância do jogo
+// Variáveis globais
 let gameInstance = null;
+let isPaused = false;
 
 // --- Lógica das Abas ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -18,99 +17,123 @@ tabButtons.forEach(button => {
     });
 });
 
-// --- Lógica do Teste de Fim de Jogo (tecla F) ---
-const gameOverScreen = document.getElementById('game-over-screen');
-window.addEventListener('keydown', (e) => {
-    if (e.key === 'f') {
-        // Usa a classe 'active' para mostrar/esconder
-        gameOverScreen.classList.toggle('active');
-    }
-});
+// --- Lógica do Botão de Play ---
+const playOverlay = document.getElementById('play-overlay');
+const playButton = document.getElementById('play-button');
 
-// 1. Lógica de Mute/Unmute
+// Referências UI
+const pauseButton = document.getElementById('pause-button');
+const iconPause = document.getElementById('icon-pause');
+const iconPlay = document.getElementById('icon-play');
+
 const muteButton = document.getElementById('mute-button');
 const iconSoundOn = document.getElementById('icon-sound-on');
 const iconSoundOff = document.getElementById('icon-sound-off');
 
-muteButton.addEventListener('click', () => {
-    if (!gameInstance) return;
-
-    // Inverte o estado de mute global do Phaser
-    gameInstance.sound.mute = !gameInstance.sound.mute;
-
-    // Alterna os ícones
-    if (gameInstance.sound.mute) {
-        iconSoundOn.classList.add('hidden');
-        iconSoundOff.classList.remove('hidden');
-        muteButton.style.borderColor = '#ff0000'; // Feedback visual extra
-    } else {
-        iconSoundOn.classList.remove('hidden');
-        iconSoundOff.classList.add('hidden');
-        muteButton.style.borderColor = '#415a77';
+// === CORREÇÃO VISUAL ===
+// Usamos '' (vazio) para mostrar, pois assim o SVG assume o display padrão dele
+// Usamos 'none' para esconder
+function toggleIcons(showIcon, hideIcon) {
+    if (showIcon && hideIcon) {
+        showIcon.style.display = '';     // Remove o 'none', torna visível
+        hideIcon.style.display = 'none'; // Aplica o 'none', esconde
     }
+}
 
-    // Tira o foco do botão para não atrapalhar teclas do teclado se houver
-    muteButton.blur();
-});
+if (playButton) {
+    playButton.addEventListener('click', () => {
+        playOverlay.classList.remove('active');
+        
+        gameInstance = iniciarJogo();
+        
+        // Resetar Pause (Mostra icone Pause, Esconde Play)
+        isPaused = false;
+        toggleIcons(iconPause, iconPlay);
+        if (pauseButton) {
+            pauseButton.style.backgroundColor = '';
+            pauseButton.style.color = '';
+        }
+
+        // Resetar Mute (Mostra Som On, Esconde Som Off)
+        toggleIcons(iconSoundOn, iconSoundOff); 
+        if (muteButton) muteButton.style.borderColor = '#415a77';
+    });
+}
+
+// 1. Lógica de Mute
+if (muteButton) {
+    muteButton.addEventListener('click', () => {
+        if (!gameInstance) return;
+
+        // Inverte o estado
+        gameInstance.sound.mute = !gameInstance.sound.mute;
+        
+        if (gameInstance.sound.mute) {
+            // Ficou MUDO -> Mostra ícone OFF, esconde ON
+            toggleIcons(iconSoundOff, iconSoundOn);
+            muteButton.style.borderColor = '#ff0000';
+        } else {
+            // Ficou COM SOM -> Mostra ícone ON, esconde OFF
+            toggleIcons(iconSoundOn, iconSoundOff);
+            muteButton.style.borderColor = '#415a77';
+        }
+        
+        muteButton.blur();
+    });
+}
 
 // 2. Lógica de Pause
-const pauseButton = document.getElementById('pause-button');
-const iconPause = document.getElementById('icon-pause');
-const iconPlay = document.getElementById('icon-play');
-let isPaused = false;
+if (pauseButton) {
+    pauseButton.addEventListener('click', () => {
+        if (!gameInstance) return;
 
-pauseButton.addEventListener('click', () => {
-    if (!gameInstance) return;
+        const playScene = gameInstance.scene.getScene('Play');
+        if (!playScene || !gameInstance.scene.isActive('Play')) {
+            if (!isPaused) return; 
+        }
 
-    // Pega a cena atual (Play)
-    // Nota: 'Play' é a chave que definimos no construtor da cena em pesca.js
-    const playScene = gameInstance.scene.getScene('Play');
+        isPaused = !isPaused;
 
-    if (!isPaused) {
-        gameInstance.scene.pause('Play'); // Pausa a cena do jogo
-        gameInstance.sound.pauseAll();    // Pausa sons
-        isPaused = true;
+        if (isPaused) {
+            gameInstance.scene.pause('Play');
+            gameInstance.sound.pauseAll();
+            
+            // Pausou -> Mostra ícone PLAY (para retomar), esconde PAUSE
+            toggleIcons(iconPlay, iconPause);
+            pauseButton.style.backgroundColor = '#ffc300';
+            pauseButton.style.color = '#000';
+        } else {
+            gameInstance.scene.resume('Play');
+            gameInstance.sound.resumeAll();
 
-        // Troca ícone para Play
-        iconPause.classList.add('hidden');
-        iconPlay.classList.remove('hidden');
-        pauseButton.style.backgroundColor = '#ffc300';
-        pauseButton.style.color = '#000';
+            // Retomou -> Mostra ícone PAUSE, esconde PLAY
+            toggleIcons(iconPause, iconPlay);
+            pauseButton.style.backgroundColor = '';
+            pauseButton.style.color = '';
+        }
+        
+        pauseButton.blur();
+    });
+}
 
-    } else {
-        gameInstance.scene.resume('Play'); // Retoma a cena
-        gameInstance.sound.resumeAll();    // Retoma sons
-        isPaused = false;
-
-        // Troca ícone para Pause
-        iconPause.classList.remove('hidden');
-        iconPlay.classList.add('hidden');
-        pauseButton.style.backgroundColor = ''; // Volta ao padrão
-        pauseButton.style.color = '';
-    }
-
-    pauseButton.blur();
-});
-
-// --- PONTO 4: Lógica do Botão de Play ---
-const playOverlay = document.getElementById('play-overlay');
-const playButton = document.getElementById('play-button');
-playButton.addEventListener('click', () => {
-    playOverlay.classList.remove('active'); // Esconde o overlay
-    iniciarJogo(); // Chama a função importada do main.js
-});
-
-// --- PONTO 5: Lógica do Botão de Tela Cheia ---
+// --- Fullscreen ---
 const fullscreenButton = document.getElementById('fullscreen-button');
 const gameWrapper = document.getElementById('game-container-wrapper');
-fullscreenButton.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-        // Entra em tela cheia no wrapper do jogo
-        gameWrapper.requestFullscreen().catch(err => {
-            alert(`Erro ao tentar entrar em tela cheia: ${err.message}`);
-        });
-    } else {
-        // Sai da tela cheia
-        document.exitFullscreen();
+
+if (fullscreenButton && gameWrapper) {
+    fullscreenButton.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            gameWrapper.requestFullscreen().catch(err => console.error(err));
+        } else {
+            document.exitFullscreen();
+        }
+    });
+}
+
+// Debug F
+const gameOverScreen = document.getElementById('game-over-screen');
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'f' && gameOverScreen) {
+        gameOverScreen.classList.toggle('active');
     }
 });
