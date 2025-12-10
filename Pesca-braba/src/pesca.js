@@ -259,7 +259,7 @@ export class Play extends Phaser.Scene {
         // === Timer para spawn de tesouros ===
         // Cria um evento que chama spawnTreasure em intervalos regulares
         this.time.addEvent({
-            delay: 6000,       // A cada 8 segundos
+            delay: 2000,       // A cada 2 segundos
             callback: this.spawnTreasure,
             callbackScope: this,
             loop: true
@@ -657,8 +657,8 @@ export class Play extends Phaser.Scene {
             // Cria a imagem do tesouro pequeno abaixo do texto
             const treasureImage = this.add.image(this.scale.width / 2, 150, this.caughtTreasure.texture.key + "-grande" ).setScale(1).setDepth(150);
 
-            // Remove o texto e a imagem após 3 segundos
-            this.time.delayedCall(3000, () => {
+            // Remove o texto e a imagem após 2 segundos
+            this.time.delayedCall(1500, () => {
                 treasureText.destroy();
                 treasureImage.destroy();
             });
