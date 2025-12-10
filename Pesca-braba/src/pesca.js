@@ -434,7 +434,7 @@ export class Play extends Phaser.Scene {
         this.isCatching = true;
         this.isInvulnerable = true;
         this.gameEnded = true;
-
+        let finalText = "";
         // === Para todos os timers de spawn ===
         this.time.removeAllEvents();
 
@@ -453,21 +453,50 @@ export class Play extends Phaser.Scene {
             title = 'TEMPO ESGOTADO!';
         }
 
-        // Efeito visual de final do jogo
-        const finalText = this.add.text(
-            this.scale.width / 2,
-            this.scale.height / 2,
-            `${title}\n\nPontuação Final: ${this.score}\n\nClique para jogar novamente`,
-            {
-                fontSize: '32px',
-                fill: '#ff0000',
-                fontFamily: 'Arial, sans-serif',
-                stroke: '#000000',
-                strokeThickness: 4,
-                align: 'center'
-            }
-        ).setOrigin(0.5).setDepth(200);
-
+        if(this.score >= 1000 && this.lives > 0){
+            // Efeito visual de final do jogo
+            this.add.text(
+                this.scale.width / 2,
+                this.scale.height / 2,
+                `Parabéns Pescador! \nVocê resgatou todos\n os tesouros do museu!\n\nPontuação Final: ${this.score}\n\nClique para jogar novamente`,
+                {
+                    fontSize: '32px',
+                    fill: '#FFFFFF',
+                    fontFamily: 'Arial, sans-serif',
+                    stroke: '#000000',
+                    strokeThickness: 4,
+                    align: 'center'
+                }
+            ).setOrigin(0.5).setDepth(200);
+        } else if(this.lives <= 0){
+            this.add.text(
+                this.scale.width / 2,
+                this.scale.height / 2,
+                `Você pescou muitos \npeixes. \n\nClique para jogar novamente`,
+                {
+                    fontSize: '32px',
+                    fill: '#ff0000',
+                    fontFamily: 'Arial, sans-serif',
+                    stroke: '#000000',
+                    strokeThickness: 4,
+                    align: 'center'
+                }
+            ).setOrigin(0.5).setDepth(200);
+        } else {
+            this.add.text(
+                this.scale.width / 2,
+                this.scale.height / 2,
+                `Você não pescou \ntesouros o suficiente. \n\nClique para jogar novamente`,
+                {
+                    fontSize: '32px',
+                    fill: '#ff0000',
+                    fontFamily: 'Arial, sans-serif',
+                    stroke: '#000000',
+                    strokeThickness: 4,
+                    align: 'center'
+                }
+            ).setOrigin(0.5).setDepth(200);
+        }
         // Adiciona evento de clique para reiniciar
         this.input.once('pointerdown', () => {
             this.scene.restart();
